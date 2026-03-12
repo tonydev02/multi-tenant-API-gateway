@@ -1,17 +1,20 @@
 # PHASE-SUMMARY: 01 Foundation
 
 ## Status
-Planned (implementation not started).
+Completed.
 
 ## What was completed in this update
-- Established Phase 01 architecture and scope.
-- Defined implementation file map and execution order.
-- Defined acceptance criteria and verification commands.
-- Documented risks and explicit non-goals.
+- Created backend scaffold with Go module, env config, router, and `GET /health`.
+- Added backend test for health endpoint behavior.
+- Created frontend React + TypeScript scaffold with placeholder dashboard.
+- Added root `Makefile`, `docker-compose.yml`, `.env.example`, and `README.md`.
+- Updated top-level planning docs for project mission, roadmap, and state.
 
-## Pending for implementation step
-- Create repository scaffolding files.
-- Add backend `/health` endpoint.
-- Add frontend placeholder dashboard.
-- Add Compose and Makefile.
-- Execute verification suite after code scaffolding.
+## Verification results
+- `go test ./...` (from `backend/`): passed.
+- `go vet ./...` (from `backend/`): passed.
+- `go build ./...` (from `backend/`): passed.
+- `npm run build` (from `frontend/`): passed.
+- `docker compose config`: passed.
+- `docker compose up -d postgres redis`: passed.
+- `docker compose ps`: postgres and redis both healthy.
