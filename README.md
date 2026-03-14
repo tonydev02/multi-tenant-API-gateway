@@ -47,6 +47,10 @@ If you run a local PostgreSQL instance outside Docker, keep `DATABASE_URL` host 
 - `POST /api/admin/api-keys/{id}/revoke` -> revoke key
 - `GET /api/consumer/whoami` -> tenant resolution via `X-API-Key`
 
+## Documentation
+- `docs/architecture.md`: current architecture, request flows, tenancy boundaries, and data model.
+- `docs/api-overview.md`: quick endpoint map for implemented MVP APIs.
+
 ## Dependencies added and why
 
 ### Backend
