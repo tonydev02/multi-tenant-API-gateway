@@ -27,7 +27,7 @@ Production-style multi-tenant API gateway scaffold with a Go backend, React + Ty
    - `make frontend-install`
    - `cd frontend && npm run dev`
 
-If you run a local PostgreSQL instance outside Docker, keep `DATABASE_URL` host as `127.0.0.1` (not `localhost`) to avoid host resolution mismatches.
+By default this project maps Docker ports to `55432` (PostgreSQL) and `56379` (Redis) to avoid conflicts with local host services.
 
 ## Verification commands
 - `make backend-test`

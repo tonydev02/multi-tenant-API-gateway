@@ -1,7 +1,7 @@
 # PHASE-SUMMARY: 02 Auth and Tenancy
 
 ## Status
-Implemented (runtime smoke verification pending local DB host resolution fix).
+Completed.
 
 ## Completed in implementation
 - Added PostgreSQL migrations for tenants, admin users, and hashed API keys.
@@ -16,7 +16,7 @@ Implemented (runtime smoke verification pending local DB host resolution fix).
 - `cd backend && go build ./...`: passed.
 - `cd frontend && npm run build`: passed.
 - `docker compose config`: passed.
-- End-to-end smoke flow is blocked in this environment because backend DB connection to `localhost:5432` resolves to a PostgreSQL instance where role `gateway` does not exist.
+- End-to-end smoke flow: passed (`/health`, `/api/admin/login`, `/api/admin/me`, API key create/revoke, `/api/consumer/whoami`).
 
 ## Next step
-- Resolve local DB host mapping (ensure backend points to the Docker postgres instance) and rerun login/API key consumer smoke checks.
+- Begin Phase 03 rate-limiting implementation.

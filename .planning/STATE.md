@@ -7,6 +7,7 @@
 - Docker Compose configuration and runtime startup verification are passing.
 - Phase 02 planning docs are now defined.
 - Phase 02 implementation is in place for backend auth/tenancy and frontend login shell.
+- Phase 02 runtime smoke checks are passing after moving Docker port mappings away from default local ports.
 
 ## Assumptions
 - MVP will prioritize clear architecture over feature depth.
@@ -20,9 +21,9 @@
 - Node and Go version pinning strategy (`.tool-versions`/`.nvmrc`/`go.mod` directives).
 
 ## Known blockers
-- Local Phase 02 runtime smoke test is blocked by DB host resolution mismatch (`pq: role "gateway" does not exist`) when backend targets `localhost:5432`.
+- None.
 
 ## Next actions
-1. Point backend runtime to Docker postgres endpoint explicitly and rerun Phase 02 smoke checks.
-2. Finalize Phase 02 UAT checklist after successful end-to-end runtime verification.
-3. Start Phase 03 rate-limiting implementation.
+1. Start Phase 03 rate-limiting implementation.
+2. Add request logging fields required for proxy/logging phase readiness.
+3. Open PR for Phase 02 completion updates.

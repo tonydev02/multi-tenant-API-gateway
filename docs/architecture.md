@@ -61,6 +61,9 @@ Primary backend config is environment-based via `.env`:
 - `DATABASE_URL`
 - `JWT_SECRET`, `JWT_ISSUER`, `JWT_EXPIRY_MINUTES`
 - bootstrap admin/tenant values
+- Local Docker defaults intentionally use non-standard host ports to avoid conflicts:
+  - PostgreSQL: `55432`
+  - Redis: `56379`
 
 ## Security choices (MVP)
 - Passwords hashed with `bcrypt`

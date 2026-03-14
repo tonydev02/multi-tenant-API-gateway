@@ -27,8 +27,8 @@
 - [x] Backend build passes.
 - [x] Frontend build passes.
 
-### Environment gap
-- [ ] End-to-end smoke tests are still blocked by local host PostgreSQL role mismatch (`role "gateway" does not exist`) when running backend against `localhost:5432`.
+### Runtime smoke checks
+- [x] End-to-end smoke checks pass (health, admin login, JWT-protected route, API key create/revoke, and consumer whoami).
 
 ## Exit criteria
 Phase 02 is complete when all checklist items are checked and no cross-tenant access path is observed in tested flows.
