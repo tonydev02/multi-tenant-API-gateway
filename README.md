@@ -3,13 +3,13 @@
 Production-style multi-tenant API gateway scaffold with a Go backend, React + TypeScript admin UI, and PostgreSQL/Redis local dependencies.
 
 ## Project layout
-- `backend/`: Go API service (`/health` included)
-- `frontend/`: React + TypeScript placeholder dashboard
+- `backend/`: Go API service with health, auth, tenancy, and API key flows
+- `frontend/`: React + TypeScript admin shell with login/tenant registration
 - `.planning/`: project and phase planning docs
 - `docker-compose.yml`: local PostgreSQL and Redis
 
 ## Prerequisites
-- Go 1.24+
+- Go 1.25+
 - Node.js 20+
 - npm 10+
 - Docker + Docker Compose
@@ -17,13 +17,17 @@ Production-style multi-tenant API gateway scaffold with a Go backend, React + Ty
 ## Quickstart
 1. Copy env defaults:
    - `cp .env.example .env`
-2. Start data services:
+2. Load environment variables:
+   - `set -a; source .env; set +a`
+3. Start data services:
    - `make compose-up`
-3. Start backend:
+4. Start backend:
    - `make backend-run`
-4. In another terminal, install frontend deps and run dev server:
+5. In another terminal, install frontend deps and run dev server:
    - `make frontend-install`
    - `cd frontend && npm run dev`
+
+If you run a local PostgreSQL instance outside Docker, keep `DATABASE_URL` host as `127.0.0.1` (not `localhost`) to avoid host resolution mismatches.
 
 ## Verification commands
 - `make backend-test`
@@ -34,12 +38,20 @@ Production-style multi-tenant API gateway scaffold with a Go backend, React + Ty
 
 ## API endpoints (current)
 - `GET /health` -> `200 {"status":"ok"}`
+- `POST /api/admin/tenants/register` -> create tenant + admin user
+- `POST /api/admin/login` -> get JWT
+- `GET /api/admin/me` -> validate JWT and return claims
+- `GET/PATCH/DELETE /api/admin/tenants/current` -> tenant CRUD on current tenant
+- `POST /api/admin/api-keys` -> create API key (plaintext returned once)
+- `GET /api/admin/api-keys` -> list tenant API keys
+- `POST /api/admin/api-keys/{id}/revoke` -> revoke key
+- `GET /api/consumer/whoami` -> tenant resolution via `X-API-Key`
 
 ## Dependencies added and why
 
 ### Backend
-- No third-party Go dependencies.
-- Reason: Phase 01 keeps backend minimal and follows standard-library-first guidance.
+- `github.com/lib/pq`: PostgreSQL driver for `database/sql`.
+- `golang.org/x/crypto/bcrypt`: password hashing/verification for admin credentials.
 
 ### Frontend
 - `react`: UI runtime for admin dashboard.

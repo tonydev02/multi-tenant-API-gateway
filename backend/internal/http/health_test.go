@@ -16,13 +16,12 @@ func TestHealthHandler(t *testing.T) {
 		{name: "get health", method: http.MethodGet, expectStatus: http.StatusOK},
 	}
 
-	router := NewRouter()
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			req := httptest.NewRequest(tc.method, "/health", nil)
 			recorder := httptest.NewRecorder()
 
-			router.ServeHTTP(recorder, req)
+			healthHandler(recorder, req)
 
 			if recorder.Code != tc.expectStatus {
 				t.Fatalf("status = %d, want %d", recorder.Code, tc.expectStatus)

@@ -1,5 +1,10 @@
 .PHONY: backend-run backend-test backend-vet backend-build frontend-install frontend-build compose-up compose-down compose-config
 
+ifneq (,$(wildcard .env))
+include .env
+export
+endif
+
 backend-run:
 	cd backend && go run ./cmd/server
 
