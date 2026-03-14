@@ -11,6 +11,7 @@ The project must demonstrate why Go is a strong choice for concurrent, network-h
 - Do not introduce unnecessary abstractions early.
 - Favor simple, explicit Go over clever patterns.
 - Preserve a working build at all times.
+- Update documentation in `/docs` whenever codebase changes affect architecture, APIs, configuration, or developer workflow.
 
 ## Tech constraints
 - Backend: Go
