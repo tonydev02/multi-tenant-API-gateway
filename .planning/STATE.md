@@ -9,6 +9,7 @@
 - Phase 02 implementation is in place for backend auth/tenancy and frontend login shell.
 - Phase 02 runtime smoke checks are passing after moving Docker port mappings away from default local ports.
 - Phase 03 tenant-aware Redis-backed rate limiting is implemented and verified.
+- Phase 04 planning docs are now defined for tenant-safe proxying and structured request logging.
 
 ## Assumptions
 - MVP will prioritize clear architecture over feature depth.
@@ -25,6 +26,6 @@
 - None.
 
 ## Next actions
-1. Start Phase 04 proxy/logging implementation.
-2. Add request logging fields required for proxy/logging phase readiness.
-3. Open PR for Phase 03 completion updates.
+1. Start Phase 04A proxy foundation implementation.
+2. Implement 04B request ID + structured logging middleware.
+3. Open PR for Phase 04 planning updates before coding.

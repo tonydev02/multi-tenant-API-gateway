@@ -1,5 +1,13 @@
-# PHASE-SUMMARY
+# PHASE-SUMMARY: 04 Proxy and Logging
 
-Placeholder content for 04-proxy-and-logging.
+## Status
+Planned (implementation not started).
 
-Describe the phase-specific details relevant to this stage so other contributors can pick up the work.
+## Completed in planning
+- Defined proxy safety architecture and middleware boundaries.
+- Defined structured logging schema and request ID propagation approach.
+- Defined implementation file map, acceptance criteria, and verification checks.
+- Documented risks and explicit non-goals.
+
+## Next step
+Start with subphase 04A proxy foundation, then add 04B logging/request ID middleware.
