@@ -1,6 +1,6 @@
 # STATE
 
-## Current status (2026-03-14)
+## Current status (2026-03-15)
 - Phase 01 scaffold is implemented for backend, frontend, and local infra config.
 - Backend verification (`go test`, `go vet`, `go build`) is passing.
 - Frontend verification (`npm run build`) is passing.
@@ -8,6 +8,7 @@
 - Phase 02 planning docs are now defined.
 - Phase 02 implementation is in place for backend auth/tenancy and frontend login shell.
 - Phase 02 runtime smoke checks are passing after moving Docker port mappings away from default local ports.
+- Phase 03 tenant-aware Redis-backed rate limiting is implemented and verified.
 
 ## Assumptions
 - MVP will prioritize clear architecture over feature depth.
@@ -24,6 +25,6 @@
 - None.
 
 ## Next actions
-1. Start Phase 03 rate-limiting implementation.
+1. Start Phase 04 proxy/logging implementation.
 2. Add request logging fields required for proxy/logging phase readiness.
-3. Open PR for Phase 02 completion updates.
+3. Open PR for Phase 03 completion updates.
