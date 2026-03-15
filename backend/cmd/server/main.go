@@ -55,10 +55,11 @@ func main() {
 	server := &http.Server{
 		Addr: fmt.Sprintf(":%d", cfg.Port),
 		Handler: gatewayhttp.NewRouter(gatewayhttp.Dependencies{
-			AuthStore:   authStore,
-			TenantStore: tenantStore,
-			JWTManager:  jwtManager,
-			APIKeyAuth:  auth.NewAPIKeyAuthenticator(authStore),
+			AuthStore:      authStore,
+			TenantStore:    tenantStore,
+			JWTManager:     jwtManager,
+			APIKeyAuth:     auth.NewAPIKeyAuthenticator(authStore),
+			FrontendOrigin: cfg.FrontendOrigin,
 		}),
 		ReadHeaderTimeout: 5 * time.Second,
 	}

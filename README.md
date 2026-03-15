@@ -28,6 +28,7 @@ Production-style multi-tenant API gateway scaffold with a Go backend, React + Ty
    - `cd frontend && npm run dev`
 
 By default this project maps Docker ports to `55432` (PostgreSQL) and `56379` (Redis) to avoid conflicts with local host services.
+If frontend calls are blocked by CORS, ensure `FRONTEND_ORIGIN` in `.env` matches your frontend URL (default `http://localhost:5173`).
 
 ## Verification commands
 - `make backend-test`

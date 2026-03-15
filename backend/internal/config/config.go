@@ -16,33 +16,35 @@ const (
 
 // Config contains process configuration loaded from environment variables.
 type Config struct {
-	Port          int
-	DBURL         string
-	DBMaxOpen     int
-	DBMaxIdle     int
-	JWTSecret     string
-	JWTIssuer     string
-	JWTExpiry     time.Duration
-	BootstrapOn   bool
-	BootstrapName string
-	BootstrapSlug string
-	BootstrapMail string
-	BootstrapPass string
+	Port           int
+	FrontendOrigin string
+	DBURL          string
+	DBMaxOpen      int
+	DBMaxIdle      int
+	JWTSecret      string
+	JWTIssuer      string
+	JWTExpiry      time.Duration
+	BootstrapOn    bool
+	BootstrapName  string
+	BootstrapSlug  string
+	BootstrapMail  string
+	BootstrapPass  string
 }
 
 // Load reads config from environment and validates expected values.
 func Load() (Config, error) {
 	cfg := Config{
-		Port:          defaultPort,
-		DBMaxOpen:     defaultDBMaxOpenConns,
-		DBMaxIdle:     defaultDBMaxIdleConns,
-		JWTIssuer:     getenv("JWT_ISSUER", "gateway-admin"),
-		JWTExpiry:     time.Duration(defaultJWTExpiryMins) * time.Minute,
-		BootstrapOn:   getenv("BOOTSTRAP_ON_START", "true") == "true",
-		BootstrapName: getenv("BOOTSTRAP_TENANT_NAME", "Acme"),
-		BootstrapSlug: getenv("BOOTSTRAP_TENANT_SLUG", "acme"),
-		BootstrapMail: getenv("BOOTSTRAP_ADMIN_EMAIL", "admin@acme.local"),
-		BootstrapPass: getenv("BOOTSTRAP_ADMIN_PASSWORD", "changeme123"),
+		Port:           defaultPort,
+		FrontendOrigin: getenv("FRONTEND_ORIGIN", "http://localhost:5173"),
+		DBMaxOpen:      defaultDBMaxOpenConns,
+		DBMaxIdle:      defaultDBMaxIdleConns,
+		JWTIssuer:      getenv("JWT_ISSUER", "gateway-admin"),
+		JWTExpiry:      time.Duration(defaultJWTExpiryMins) * time.Minute,
+		BootstrapOn:    getenv("BOOTSTRAP_ON_START", "true") == "true",
+		BootstrapName:  getenv("BOOTSTRAP_TENANT_NAME", "Acme"),
+		BootstrapSlug:  getenv("BOOTSTRAP_TENANT_SLUG", "acme"),
+		BootstrapMail:  getenv("BOOTSTRAP_ADMIN_EMAIL", "admin@acme.local"),
+		BootstrapPass:  getenv("BOOTSTRAP_ADMIN_PASSWORD", "changeme123"),
 	}
 
 	var err error

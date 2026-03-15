@@ -9,10 +9,11 @@ import (
 
 // Dependencies holds required collaborators for HTTP handlers.
 type Dependencies struct {
-	AuthStore   *auth.Store
-	TenantStore *tenant.Store
-	JWTManager  *auth.JWTManager
-	APIKeyAuth  *auth.APIKeyAuthenticator
+	AuthStore      *auth.Store
+	TenantStore    *tenant.Store
+	JWTManager     *auth.JWTManager
+	APIKeyAuth     *auth.APIKeyAuthenticator
+	FrontendOrigin string
 }
 
 // NewRouter builds the HTTP router for gateway APIs.
@@ -39,5 +40,5 @@ func NewRouter(deps Dependencies) http.Handler {
 
 	mux.Handle("GET /api/consumer/whoami", consumerGuard(consumerWhoAmIHandler(deps.TenantStore)))
 
-	return mux
+	return withCORS(deps.FrontendOrigin)(mux)
 }

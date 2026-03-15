@@ -58,6 +58,7 @@ Defined in `backend/internal/db/migrations/0001_auth_tenancy.sql`:
 ## Configuration
 Primary backend config is environment-based via `.env`:
 - `PORT`
+- `FRONTEND_ORIGIN` (CORS allowlist origin for browser admin UI)
 - `DATABASE_URL`
 - `JWT_SECRET`, `JWT_ISSUER`, `JWT_EXPIRY_MINUTES`
 - bootstrap admin/tenant values
