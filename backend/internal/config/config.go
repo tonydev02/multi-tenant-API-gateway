@@ -16,35 +16,44 @@ const (
 
 // Config contains process configuration loaded from environment variables.
 type Config struct {
-	Port           int
-	FrontendOrigin string
-	DBURL          string
-	DBMaxOpen      int
-	DBMaxIdle      int
-	JWTSecret      string
-	JWTIssuer      string
-	JWTExpiry      time.Duration
-	BootstrapOn    bool
-	BootstrapName  string
-	BootstrapSlug  string
-	BootstrapMail  string
-	BootstrapPass  string
+	Port            int
+	FrontendOrigin  string
+	DBURL           string
+	DBMaxOpen       int
+	DBMaxIdle       int
+	RedisAddr       string
+	RedisPassword   string
+	RedisDB         int
+	RateLimitReqs   int64
+	RateLimitWindow time.Duration
+	JWTSecret       string
+	JWTIssuer       string
+	JWTExpiry       time.Duration
+	BootstrapOn     bool
+	BootstrapName   string
+	BootstrapSlug   string
+	BootstrapMail   string
+	BootstrapPass   string
 }
 
 // Load reads config from environment and validates expected values.
 func Load() (Config, error) {
 	cfg := Config{
-		Port:           defaultPort,
-		FrontendOrigin: getenv("FRONTEND_ORIGIN", "http://localhost:5173"),
-		DBMaxOpen:      defaultDBMaxOpenConns,
-		DBMaxIdle:      defaultDBMaxIdleConns,
-		JWTIssuer:      getenv("JWT_ISSUER", "gateway-admin"),
-		JWTExpiry:      time.Duration(defaultJWTExpiryMins) * time.Minute,
-		BootstrapOn:    getenv("BOOTSTRAP_ON_START", "true") == "true",
-		BootstrapName:  getenv("BOOTSTRAP_TENANT_NAME", "Acme"),
-		BootstrapSlug:  getenv("BOOTSTRAP_TENANT_SLUG", "acme"),
-		BootstrapMail:  getenv("BOOTSTRAP_ADMIN_EMAIL", "admin@acme.local"),
-		BootstrapPass:  getenv("BOOTSTRAP_ADMIN_PASSWORD", "changeme123"),
+		Port:            defaultPort,
+		FrontendOrigin:  getenv("FRONTEND_ORIGIN", "http://localhost:5173"),
+		DBMaxOpen:       defaultDBMaxOpenConns,
+		DBMaxIdle:       defaultDBMaxIdleConns,
+		JWTIssuer:       getenv("JWT_ISSUER", "gateway-admin"),
+		JWTExpiry:       time.Duration(defaultJWTExpiryMins) * time.Minute,
+		BootstrapOn:     getenv("BOOTSTRAP_ON_START", "true") == "true",
+		BootstrapName:   getenv("BOOTSTRAP_TENANT_NAME", "Acme"),
+		BootstrapSlug:   getenv("BOOTSTRAP_TENANT_SLUG", "acme"),
+		BootstrapMail:   getenv("BOOTSTRAP_ADMIN_EMAIL", "admin@acme.local"),
+		BootstrapPass:   getenv("BOOTSTRAP_ADMIN_PASSWORD", "changeme123"),
+		RedisAddr:       getenv("REDIS_ADDR", fmt.Sprintf("%s:%s", getenv("REDIS_HOST", "127.0.0.1"), getenv("REDIS_PORT", "56379"))),
+		RedisPassword:   getenv("REDIS_PASSWORD", ""),
+		RateLimitReqs:   60,
+		RateLimitWindow: 60 * time.Second,
 	}
 
 	var err error
@@ -60,6 +69,20 @@ func Load() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	cfg.RedisDB, err = parseIntEnv("REDIS_DB", 0)
+	if err != nil {
+		return Config{}, err
+	}
+	rateLimitReqs, err := parseIntEnv("RATE_LIMIT_REQUESTS", int(cfg.RateLimitReqs))
+	if err != nil {
+		return Config{}, err
+	}
+	rateLimitWindowSeconds, err := parseIntEnv("RATE_LIMIT_WINDOW_SECONDS", int(cfg.RateLimitWindow.Seconds()))
+	if err != nil {
+		return Config{}, err
+	}
+	cfg.RateLimitReqs = int64(rateLimitReqs)
+	cfg.RateLimitWindow = time.Duration(rateLimitWindowSeconds) * time.Second
 
 	cfg.DBURL = getenv("DATABASE_URL", "postgres://gateway:gateway@localhost:5432/gateway?sslmode=disable")
 	cfg.JWTSecret = os.Getenv("JWT_SECRET")
@@ -83,6 +106,9 @@ func Load() (Config, error) {
 	}
 	if cfg.DBMaxOpen <= 0 || cfg.DBMaxIdle <= 0 {
 		return Config{}, fmt.Errorf("DB_MAX_OPEN_CONNS and DB_MAX_IDLE_CONNS must be greater than zero")
+	}
+	if cfg.RateLimitReqs <= 0 || cfg.RateLimitWindow <= 0 {
+		return Config{}, fmt.Errorf("RATE_LIMIT_REQUESTS and RATE_LIMIT_WINDOW_SECONDS must be greater than zero")
 	}
 
 	return cfg, nil

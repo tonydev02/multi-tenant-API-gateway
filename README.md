@@ -36,6 +36,8 @@ If frontend calls are blocked by CORS, ensure `FRONTEND_ORIGIN` in `.env` matche
 - `make backend-build`
 - `make frontend-build`
 - `make compose-config`
+- Runtime rate-limit smoke check (example):
+  - call a protected endpoint repeatedly and verify HTTP `429` after threshold
 
 ## API endpoints (current)
 - `GET /health` -> `200 {"status":"ok"}`
@@ -57,6 +59,7 @@ If frontend calls are blocked by CORS, ensure `FRONTEND_ORIGIN` in `.env` matche
 ### Backend
 - `github.com/lib/pq`: PostgreSQL driver for `database/sql`.
 - `golang.org/x/crypto/bcrypt`: password hashing/verification for admin credentials.
+- `github.com/redis/go-redis/v9`: Redis client for tenant-aware rate-limiting counters.
 
 ### Frontend
 - `react`: UI runtime for admin dashboard.

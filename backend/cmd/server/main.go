@@ -13,6 +13,7 @@ import (
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/config"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/db"
 	gatewayhttp "github.com/namta/multi-tenant-api-gateway/backend/internal/http"
+	"github.com/namta/multi-tenant-api-gateway/backend/internal/ratelimit"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/tenant"
 )
 
@@ -51,6 +52,17 @@ func main() {
 	tenantStore := tenant.NewStore(database)
 	authStore := auth.NewStore(database)
 	jwtManager := auth.NewJWTManager(cfg.JWTSecret, cfg.JWTIssuer, cfg.JWTExpiry)
+	redisClient, err := ratelimit.NewRedisClient(context.Background(), cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
+	if err != nil {
+		log.Fatalf("open redis client: %v", err)
+	}
+	defer func() {
+		if closeErr := redisClient.Close(); closeErr != nil {
+			log.Printf("close redis client: %v", closeErr)
+		}
+	}()
+	rateLimiter := ratelimit.NewService(ratelimit.NewRedisStore(redisClient))
+	adminPolicy := ratelimit.Policy{Requests: cfg.RateLimitReqs, Window: cfg.RateLimitWindow}
 
 	server := &http.Server{
 		Addr: fmt.Sprintf(":%d", cfg.Port),
@@ -59,6 +71,9 @@ func main() {
 			TenantStore:    tenantStore,
 			JWTManager:     jwtManager,
 			APIKeyAuth:     auth.NewAPIKeyAuthenticator(authStore),
+			RateLimiter:    rateLimiter,
+			AdminLimit:     adminPolicy,
+			ConsumerLimit:  adminPolicy,
 			FrontendOrigin: cfg.FrontendOrigin,
 		}),
 		ReadHeaderTimeout: 5 * time.Second,

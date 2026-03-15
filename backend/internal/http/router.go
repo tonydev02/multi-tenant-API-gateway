@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/auth"
+	"github.com/namta/multi-tenant-api-gateway/backend/internal/ratelimit"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/tenant"
 )
 
@@ -13,6 +14,9 @@ type Dependencies struct {
 	TenantStore    *tenant.Store
 	JWTManager     *auth.JWTManager
 	APIKeyAuth     *auth.APIKeyAuthenticator
+	RateLimiter    *ratelimit.Service
+	AdminLimit     ratelimit.Policy
+	ConsumerLimit  ratelimit.Policy
 	FrontendOrigin string
 }
 
@@ -22,8 +26,8 @@ func NewRouter(deps Dependencies) http.Handler {
 
 	authMiddleware := requireAdminAuth(deps.JWTManager)
 	tenantMiddleware := requireTenantContext()
-	adminGuard := chainMiddleware(authMiddleware, tenantMiddleware)
-	consumerGuard := requireAPIKeyAuth(deps.APIKeyAuth)
+	adminGuard := chainMiddleware(authMiddleware, tenantMiddleware, requireTenantRateLimit(deps.RateLimiter, deps.AdminLimit))
+	consumerGuard := chainMiddleware(requireAPIKeyAuth(deps.APIKeyAuth), tenantMiddleware, requireTenantRateLimit(deps.RateLimiter, deps.ConsumerLimit))
 
 	mux.HandleFunc("GET /health", healthHandler)
 	mux.HandleFunc("POST /api/admin/login", loginHandler(deps.AuthStore, deps.JWTManager))

@@ -7,12 +7,13 @@ This repository is a monorepo for a multi-tenant API gateway SaaS MVP:
 - **Data**: PostgreSQL (system of record) + Redis (reserved for rate limiting/caching phases)
 - **Local runtime**: Docker Compose
 
-## Current implementation scope (through Phase 02)
+## Current implementation scope (through Phase 03)
 - Health endpoint (`GET /health`)
 - Tenant registration and tenant CRUD (current tenant)
 - Admin authentication via JWT
 - Consumer authentication via API keys
 - Tenant resolution from trusted credentials (JWT claims or API key lookup)
+- Tenant-aware fixed-window rate limiting backed by Redis
 
 ## Repository structure
 - `backend/`
@@ -41,6 +42,12 @@ This repository is a monorepo for a multi-tenant API gateway SaaS MVP:
 2. Backend stores only **hashed** key and prefix in DB; plaintext is returned once.
 3. Consumer sends `X-API-Key` on protected consumer route.
 4. Middleware resolves prefix, compares hash, and injects tenant context.
+
+### Rate-limiting flow
+1. Middleware reads tenant ID from trusted request context.
+2. Service computes fixed-window bucket using tenant + normalized route + window start.
+3. Redis `INCR` tracks usage; first hit sets key expiry for window rollover.
+4. Requests above threshold return `429` with limit metadata.
 
 ## Multi-tenancy boundaries
 - Tenant identity is resolved server-side from JWT/API key.
@@ -73,6 +80,5 @@ Primary backend config is environment-based via `.env`:
 - Plain API key secrets are never persisted
 
 ## Next architectural milestones
-- Phase 03: tenant-aware rate limiting (Redis)
 - Phase 04: proxy layer + structured request logging
 - Phase 05+: admin UX expansion and operational hardening
