@@ -20,8 +20,10 @@
 
 ## Consumer identity
 - `GET /api/consumer/whoami` (`X-API-Key` required)
+- `ANY /api/consumer/proxy/{service}/{path...}` (`X-API-Key` required)
 
 ## Notes
 - Admin endpoints infer tenant context from JWT claims.
 - Consumer endpoints infer tenant context from API key lookup.
 - Do not send tenant IDs from clients to choose tenancy.
+- `X-Request-ID` is returned on responses and forwarded for proxy requests.

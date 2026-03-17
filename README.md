@@ -49,6 +49,7 @@ If frontend calls are blocked by CORS, ensure `FRONTEND_ORIGIN` in `.env` matche
 - `GET /api/admin/api-keys` -> list tenant API keys
 - `POST /api/admin/api-keys/{id}/revoke` -> revoke key
 - `GET /api/consumer/whoami` -> tenant resolution via `X-API-Key`
+- `ANY /api/consumer/proxy/{service}/{path...}` -> tenant-safe upstream proxying via `X-API-Key`
 
 ## Documentation
 - `docs/architecture.md`: current architecture, request flows, tenancy boundaries, and data model.
@@ -73,3 +74,14 @@ If frontend calls are blocked by CORS, ensure `FRONTEND_ORIGIN` in `.env` matche
 ### Infrastructure
 - `postgres:16-alpine`: relational storage baseline for tenant and auth data.
 - `redis:7-alpine`: in-memory store for caching/rate-limiting data.
+
+## Proxy configuration
+- `PROXY_TIMEOUT_SECONDS`: upstream timeout for proxied requests (default `10`).
+- `PROXY_UPSTREAMS`: tenant-safe route map loaded at startup.
+  - Format: `<tenant_id>:<service>=<base_url>,<tenant_id>:<service>=<base_url>`
+  - Example: `1:billing=http://localhost:18081,1:catalog=http://localhost:18082,2:billing=http://localhost:28081`
+
+## Structured request logs
+- Gateway logs are JSON (`log/slog`) and emitted once per request.
+- Required fields: `tenant_id`, `route`, `status`, `latency_ms`, `request_id`.
+- `X-Request-ID` is returned to clients and forwarded to upstream services.

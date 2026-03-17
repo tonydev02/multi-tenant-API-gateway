@@ -1,13 +1,23 @@
 # PHASE-SUMMARY: 04 Proxy and Logging
 
 ## Status
-Planned (implementation not started).
+Implemented and verified.
 
-## Completed in planning
-- Defined proxy safety architecture and middleware boundaries.
-- Defined structured logging schema and request ID propagation approach.
-- Defined implementation file map, acceptance criteria, and verification checks.
-- Documented risks and explicit non-goals.
+## Completed
+- Added tenant-safe consumer proxy endpoint: `ANY /api/consumer/proxy/{service}/{path...}`.
+- Added env-backed tenant/service upstream resolver (`PROXY_UPSTREAMS`).
+- Added request ID middleware with `X-Request-ID` propagation to response and upstream.
+- Added structured JSON request logging using `log/slog`.
+- Added proxy safety middleware to strip untrusted client routing hints.
+- Added Phase 04 tests for proxy resolver, proxy handler, request ID middleware, and logging middleware.
+- Updated docs and configuration examples for proxy and logging behavior.
+
+## Verification completed
+- `cd backend && go test ./...`
+- `cd backend && go vet ./...`
+- `cd backend && go build ./...`
+- `cd frontend && npm run build`
+- `docker compose config`
 
 ## Next step
-Start with subphase 04A proxy foundation, then add 04B logging/request ID middleware.
+Begin Phase 05 admin dashboard expansion.

@@ -26,6 +26,8 @@ type Config struct {
 	RedisDB         int
 	RateLimitReqs   int64
 	RateLimitWindow time.Duration
+	ProxyTimeout    time.Duration
+	ProxyUpstreams  string
 	JWTSecret       string
 	JWTIssuer       string
 	JWTExpiry       time.Duration
@@ -54,6 +56,8 @@ func Load() (Config, error) {
 		RedisPassword:   getenv("REDIS_PASSWORD", ""),
 		RateLimitReqs:   60,
 		RateLimitWindow: 60 * time.Second,
+		ProxyTimeout:    10 * time.Second,
+		ProxyUpstreams:  getenv("PROXY_UPSTREAMS", ""),
 	}
 
 	var err error
@@ -81,8 +85,13 @@ func Load() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	proxyTimeoutSeconds, err := parseIntEnv("PROXY_TIMEOUT_SECONDS", int(cfg.ProxyTimeout.Seconds()))
+	if err != nil {
+		return Config{}, err
+	}
 	cfg.RateLimitReqs = int64(rateLimitReqs)
 	cfg.RateLimitWindow = time.Duration(rateLimitWindowSeconds) * time.Second
+	cfg.ProxyTimeout = time.Duration(proxyTimeoutSeconds) * time.Second
 
 	cfg.DBURL = getenv("DATABASE_URL", "postgres://gateway:gateway@localhost:5432/gateway?sslmode=disable")
 	cfg.JWTSecret = os.Getenv("JWT_SECRET")
@@ -109,6 +118,9 @@ func Load() (Config, error) {
 	}
 	if cfg.RateLimitReqs <= 0 || cfg.RateLimitWindow <= 0 {
 		return Config{}, fmt.Errorf("RATE_LIMIT_REQUESTS and RATE_LIMIT_WINDOW_SECONDS must be greater than zero")
+	}
+	if cfg.ProxyTimeout <= 0 {
+		return Config{}, fmt.Errorf("PROXY_TIMEOUT_SECONDS must be greater than zero")
 	}
 
 	return cfg, nil

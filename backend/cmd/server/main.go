@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -13,6 +15,7 @@ import (
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/config"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/db"
 	gatewayhttp "github.com/namta/multi-tenant-api-gateway/backend/internal/http"
+	"github.com/namta/multi-tenant-api-gateway/backend/internal/proxy"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/ratelimit"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/tenant"
 )
@@ -63,6 +66,12 @@ func main() {
 	}()
 	rateLimiter := ratelimit.NewService(ratelimit.NewRedisStore(redisClient))
 	adminPolicy := ratelimit.Policy{Requests: cfg.RateLimitReqs, Window: cfg.RateLimitWindow}
+	proxyStore, err := proxy.NewMemoryStoreFromConfig(cfg.ProxyUpstreams)
+	if err != nil {
+		log.Fatalf("load proxy upstream config: %v", err)
+	}
+	proxyResolver := proxy.NewService(proxyStore)
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
 
 	server := &http.Server{
 		Addr: fmt.Sprintf(":%d", cfg.Port),
@@ -74,6 +83,9 @@ func main() {
 			RateLimiter:    rateLimiter,
 			AdminLimit:     adminPolicy,
 			ConsumerLimit:  adminPolicy,
+			ProxyResolver:  proxyResolver,
+			ProxyTimeout:   cfg.ProxyTimeout,
+			Logger:         logger,
 			FrontendOrigin: cfg.FrontendOrigin,
 		}),
 		ReadHeaderTimeout: 5 * time.Second,

@@ -7,13 +7,15 @@ This repository is a monorepo for a multi-tenant API gateway SaaS MVP:
 - **Data**: PostgreSQL (system of record) + Redis (reserved for rate limiting/caching phases)
 - **Local runtime**: Docker Compose
 
-## Current implementation scope (through Phase 03)
+## Current implementation scope (through Phase 04)
 - Health endpoint (`GET /health`)
 - Tenant registration and tenant CRUD (current tenant)
 - Admin authentication via JWT
 - Consumer authentication via API keys
 - Tenant resolution from trusted credentials (JWT claims or API key lookup)
 - Tenant-aware fixed-window rate limiting backed by Redis
+- Tenant-safe consumer proxy routing (`/api/consumer/proxy/{service}/{path...}`)
+- Request ID propagation and structured JSON request logging
 
 ## Repository structure
 - `backend/`
@@ -49,6 +51,18 @@ This repository is a monorepo for a multi-tenant API gateway SaaS MVP:
 3. Redis `INCR` tracks usage; first hit sets key expiry for window rollover.
 4. Requests above threshold return `429` with limit metadata.
 
+### Proxy flow
+1. Consumer calls `ANY /api/consumer/proxy/{service}/{path...}` with `X-API-Key`.
+2. Gateway resolves tenant from API key and applies tenant-aware rate limiting.
+3. Proxy resolver selects upstream from server-side mapping key `{tenant_id, service}`.
+4. Gateway forwards method/path/query/body to upstream using `httputil.ReverseProxy`.
+5. Gateway forwards `X-Request-ID` upstream and returns it to client responses.
+
+### Logging flow
+1. Gateway reads or generates `X-Request-ID`.
+2. Logging middleware emits one JSON log entry after each request.
+3. Required log fields: `tenant_id`, `route`, `status`, `latency_ms`, `request_id`.
+
 ## Multi-tenancy boundaries
 - Tenant identity is resolved server-side from JWT/API key.
 - Backend does not trust client-supplied tenant identifiers.
@@ -68,6 +82,8 @@ Primary backend config is environment-based via `.env`:
 - `FRONTEND_ORIGIN` (CORS allowlist origin for browser admin UI)
 - `DATABASE_URL`
 - `JWT_SECRET`, `JWT_ISSUER`, `JWT_EXPIRY_MINUTES`
+- `RATE_LIMIT_REQUESTS`, `RATE_LIMIT_WINDOW_SECONDS`
+- `PROXY_TIMEOUT_SECONDS`, `PROXY_UPSTREAMS`
 - bootstrap admin/tenant values
 - Local Docker defaults intentionally use non-standard host ports to avoid conflicts:
   - PostgreSQL: `55432`
@@ -80,5 +96,4 @@ Primary backend config is environment-based via `.env`:
 - Plain API key secrets are never persisted
 
 ## Next architectural milestones
-- Phase 04: proxy layer + structured request logging
 - Phase 05+: admin UX expansion and operational hardening

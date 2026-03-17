@@ -2,6 +2,7 @@ package gatewayhttp
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/auth"
@@ -23,6 +24,7 @@ func requireAdminAuth(jwtManager *auth.JWTManager) func(http.Handler) http.Handl
 				return
 			}
 
+			r.Header.Set(gatewayTenantIDHeader, strconv.FormatInt(claims.TenantID, 10))
 			next.ServeHTTP(w, r.WithContext(auth.WithClaims(r.Context(), claims)))
 		})
 	}
@@ -43,6 +45,7 @@ func requireAPIKeyAuth(apiKeyAuth *auth.APIKeyAuthenticator) func(http.Handler) 
 			}
 
 			claims := auth.Claims{TenantID: record.TenantID}
+			r.Header.Set(gatewayTenantIDHeader, strconv.FormatInt(claims.TenantID, 10))
 			next.ServeHTTP(w, r.WithContext(auth.WithClaims(r.Context(), claims)))
 		})
 	}

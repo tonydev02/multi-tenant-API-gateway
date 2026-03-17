@@ -1,9 +1,12 @@
 package gatewayhttp
 
 import (
+	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/auth"
+	"github.com/namta/multi-tenant-api-gateway/backend/internal/proxy"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/ratelimit"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/tenant"
 )
@@ -17,6 +20,9 @@ type Dependencies struct {
 	RateLimiter    *ratelimit.Service
 	AdminLimit     ratelimit.Policy
 	ConsumerLimit  ratelimit.Policy
+	ProxyResolver  proxy.Resolver
+	ProxyTimeout   time.Duration
+	Logger         *slog.Logger
 	FrontendOrigin string
 }
 
@@ -28,6 +34,12 @@ func NewRouter(deps Dependencies) http.Handler {
 	tenantMiddleware := requireTenantContext()
 	adminGuard := chainMiddleware(authMiddleware, tenantMiddleware, requireTenantRateLimit(deps.RateLimiter, deps.AdminLimit))
 	consumerGuard := chainMiddleware(requireAPIKeyAuth(deps.APIKeyAuth), tenantMiddleware, requireTenantRateLimit(deps.RateLimiter, deps.ConsumerLimit))
+	proxyGuard := chainMiddleware(
+		requireAPIKeyAuth(deps.APIKeyAuth),
+		tenantMiddleware,
+		requireTenantRateLimit(deps.RateLimiter, deps.ConsumerLimit),
+		requireProxyAuthorization(),
+	)
 
 	mux.HandleFunc("GET /health", healthHandler)
 	mux.HandleFunc("POST /api/admin/login", loginHandler(deps.AuthStore, deps.JWTManager))
@@ -43,6 +55,10 @@ func NewRouter(deps Dependencies) http.Handler {
 	mux.Handle("POST /api/admin/api-keys/{id}/revoke", adminGuard(revokeAPIKeyHandler(deps.AuthStore)))
 
 	mux.Handle("GET /api/consumer/whoami", consumerGuard(consumerWhoAmIHandler(deps.TenantStore)))
+	mux.Handle(proxy.ProxyPrefix, proxyGuard(proxy.NewHandler(deps.ProxyResolver, deps.ProxyTimeout)))
 
-	return withCORS(deps.FrontendOrigin)(mux)
+	handler := withCORS(deps.FrontendOrigin)(mux)
+	handler = withRequestLogging(deps.Logger)(handler)
+	handler = withRequestID()(handler)
+	return handler
 }
