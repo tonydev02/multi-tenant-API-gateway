@@ -44,46 +44,83 @@ export function AuthShell({ onAuthenticated }: AuthShellProps) {
   }
 
   return (
-    <main style={{ fontFamily: "sans-serif", margin: "2rem auto", maxWidth: 960 }}>
-      <h1>Gateway Admin Dashboard</h1>
-      <p>Admin authentication and tenant onboarding.</p>
+    <main className="auth-shell">
+      <section className="card hero-card">
+        <h1 className="hero-title">Gateway Admin Dashboard</h1>
+        <p className="hero-subtitle">
+          Production-style multi-tenant API gateway SaaS built with Go for concurrent, network-heavy backend
+          workloads.
+        </p>
+        <p className="hero-details">
+          This admin UI demonstrates secure tenant onboarding, JWT-based admin authentication, API key lifecycle
+          management, tenant-aware request controls, and live traffic visibility for REST gateway operations.
+        </p>
+        <p className="hero-link">
+          GitHub repository:{" "}
+          <a href="https://github.com/tonydev02/multi-tenant-API-gateway" rel="noreferrer" target="_blank">
+            github.com/tonydev02/multi-tenant-API-gateway
+          </a>
+        </p>
+      </section>
 
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
-        <button disabled={loading || mode === "login"} onClick={() => setMode("login")}>
-          Login
-        </button>
-        <button disabled={loading || mode === "register"} onClick={() => setMode("register")}>
-          Register Tenant
-        </button>
-      </div>
+      <section className="card">
+        <div className="mode-switch">
+          <button
+            className={mode === "login" ? "btn-primary" : "btn-secondary"}
+            disabled={loading || mode === "login"}
+            onClick={() => setMode("login")}
+            type="button"
+          >
+            Login
+          </button>
+          <button
+            className={mode === "register" ? "btn-primary" : "btn-secondary"}
+            disabled={loading || mode === "register"}
+            onClick={() => setMode("register")}
+            type="button"
+          >
+            Register Tenant
+          </button>
+        </div>
 
-      <form onSubmit={onSubmit} style={{ display: "grid", gap: "0.75rem", maxWidth: 420 }}>
-        {mode === "register" && (
-          <>
-            <label>
-              Tenant Name
-              <input value={tenantName} onChange={(e) => setTenantName(e.target.value)} />
-            </label>
-            <label>
-              Tenant Slug
-              <input value={tenantSlug} onChange={(e) => setTenantSlug(e.target.value)} />
-            </label>
-          </>
+        <form className="form-grid spaced-top" onSubmit={onSubmit}>
+          {mode === "register" && (
+            <>
+              <label>
+                Tenant Name
+                <input value={tenantName} onChange={(e) => setTenantName(e.target.value)} />
+              </label>
+              <label>
+                Tenant Slug
+                <input value={tenantSlug} onChange={(e) => setTenantSlug(e.target.value)} />
+              </label>
+            </>
+          )}
+          <label>
+            Email
+            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" />
+          </label>
+          <label>
+            Password
+            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" />
+          </label>
+          <button className="btn-primary" disabled={loading} type="submit">
+            {loading ? "Working..." : mode === "register" ? "Create tenant" : "Login"}
+          </button>
+        </form>
+
+        {message && (
+          <p
+            className={`message ${
+              message.toLowerCase().includes("error") || message.toLowerCase().includes("failed")
+                ? "message-error"
+                : "message-success"
+            }`}
+          >
+            {message}
+          </p>
         )}
-        <label>
-          Email
-          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" />
-        </label>
-        <label>
-          Password
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" />
-        </label>
-        <button disabled={loading} type="submit">
-          {loading ? "Working..." : mode === "register" ? "Create tenant" : "Login"}
-        </button>
-      </form>
-
-      {message && <p style={{ marginTop: "1rem" }}>{message}</p>}
+      </section>
     </main>
   );
 }

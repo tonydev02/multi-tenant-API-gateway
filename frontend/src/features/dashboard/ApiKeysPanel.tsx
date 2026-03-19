@@ -72,37 +72,37 @@ export function ApiKeysPanel({ token, onChanged }: ApiKeysPanelProps) {
   }
 
   return (
-    <section style={{ border: "1px solid #ccc", borderRadius: 8, padding: "1rem" }}>
-      <h2 style={{ marginTop: 0 }}>API Keys</h2>
-      <form onSubmit={onCreate} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem" }}>
+    <section className="card">
+      <h2 className="panel-title">API Keys</h2>
+      <form className="inline-form" onSubmit={onCreate}>
         <input
           aria-label="API key name"
           value={newKeyName}
           onChange={(e) => setNewKeyName(e.target.value)}
           placeholder="Key name"
         />
-        <button disabled={loading || newKeyName.trim() === ""} type="submit">
+        <button className="btn-primary" disabled={loading || newKeyName.trim() === ""} type="submit">
           {loading ? "Working..." : "Create key"}
         </button>
       </form>
 
       {created ? (
-        <div style={{ border: "1px solid #666", borderRadius: 6, padding: "0.75rem", marginBottom: "0.75rem" }}>
+        <div className="info-box">
           <strong>New key (shown once):</strong>
-          <pre style={{ marginBottom: 0, overflowX: "auto" }}>{created.api_key}</pre>
+          <pre>{created.api_key}</pre>
         </div>
       ) : null}
 
       {loading && keys.length === 0 ? <p>Loading keys...</p> : null}
       {keys.length > 0 ? (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table>
           <thead>
             <tr>
-              <th style={{ textAlign: "left" }}>Name</th>
-              <th style={{ textAlign: "left" }}>Prefix</th>
-              <th style={{ textAlign: "left" }}>Created</th>
-              <th style={{ textAlign: "left" }}>Revoked</th>
-              <th style={{ textAlign: "left" }}>Action</th>
+              <th>Name</th>
+              <th>Prefix</th>
+              <th>Created</th>
+              <th>Revoked</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -115,7 +115,12 @@ export function ApiKeysPanel({ token, onChanged }: ApiKeysPanelProps) {
                 <td>{new Date(key.created_at).toLocaleString()}</td>
                 <td>{key.revoked_at ? new Date(key.revoked_at).toLocaleString() : "active"}</td>
                 <td>
-                  <button disabled={loading || !!key.revoked_at} onClick={() => onRevoke(key.id)}>
+                  <button
+                    className={key.revoked_at ? "btn-secondary" : "btn-danger"}
+                    disabled={loading || !!key.revoked_at}
+                    onClick={() => onRevoke(key.id)}
+                    type="button"
+                  >
                     Revoke
                   </button>
                 </td>
@@ -127,7 +132,17 @@ export function ApiKeysPanel({ token, onChanged }: ApiKeysPanelProps) {
         <p>No API keys yet.</p>
       )}
 
-      {message ? <p style={{ marginBottom: 0 }}>{message}</p> : null}
+      {message ? (
+        <p
+          className={`message ${
+            message.toLowerCase().includes("failed") || message.toLowerCase().includes("error")
+              ? "message-error"
+              : "message-success"
+          }`}
+        >
+          {message}
+        </p>
+      ) : null}
     </section>
   );
 }

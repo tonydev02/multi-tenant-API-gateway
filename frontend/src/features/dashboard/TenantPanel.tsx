@@ -59,11 +59,11 @@ export function TenantPanel({ token }: TenantPanelProps) {
   }
 
   return (
-    <section style={{ border: "1px solid #ccc", borderRadius: 8, padding: "1rem" }}>
-      <h2 style={{ marginTop: 0 }}>Tenant Profile</h2>
+    <section className="card">
+      <h2 className="panel-title">Tenant Profile</h2>
       {loading && !tenant ? <p>Loading tenant...</p> : null}
       {tenant ? (
-        <form onSubmit={onSubmit} style={{ display: "grid", gap: "0.5rem", maxWidth: 420 }}>
+        <form className="form-grid narrow" onSubmit={onSubmit}>
           <label>
             Tenant Name
             <input value={name} onChange={(e) => setName(e.target.value)} />
@@ -72,12 +72,14 @@ export function TenantPanel({ token }: TenantPanelProps) {
             Tenant Slug
             <input value={tenant.slug} disabled />
           </label>
-          <button disabled={loading || name.trim() === ""} type="submit">
+          <button className="btn-primary" disabled={loading || name.trim() === ""} type="submit">
             {loading ? "Saving..." : "Update tenant"}
           </button>
         </form>
       ) : null}
-      {message ? <p style={{ marginBottom: 0 }}>{message}</p> : null}
+      {message ? (
+        <p className={`message ${message.toLowerCase().includes("failed") ? "message-error" : "message-success"}`}>{message}</p>
+      ) : null}
     </section>
   );
 }

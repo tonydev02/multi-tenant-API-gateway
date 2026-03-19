@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/features/auth/authshell.tsx","./src/lib/api.ts","./vite.config.ts"],"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/features/auth/authshell.tsx","./src/features/dashboard/apikeyspanel.tsx","./src/features/dashboard/dashboardshell.tsx","./src/features/dashboard/tenantpanel.tsx","./src/features/dashboard/trafficpanel.tsx","./src/lib/api.ts","./vite.config.ts"],"version":"5.9.3"}

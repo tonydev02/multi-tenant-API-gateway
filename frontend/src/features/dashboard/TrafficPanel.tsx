@@ -41,11 +41,11 @@ export function TrafficPanel({ token, refreshTick }: TrafficPanelProps) {
   }, [token, refreshTick]);
 
   return (
-    <section style={{ border: "1px solid #ccc", borderRadius: 8, padding: "1rem" }}>
-      <h2 style={{ marginTop: 0 }}>Traffic Summary</h2>
+    <section className="card">
+      <h2 className="panel-title">Traffic Summary</h2>
       {loading ? <p>Loading traffic summary...</p> : null}
       {!loading && summary ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "0.5rem" }}>
+        <div className="metrics-grid">
           <Metric label="Total requests" value={summary.total_requests} />
           <Metric label="Rate-limited" value={summary.rate_limited_requests} />
           <Metric label="Avg latency (ms)" value={summary.avg_latency_ms} />
@@ -54,16 +54,16 @@ export function TrafficPanel({ token, refreshTick }: TrafficPanelProps) {
           <Metric label="5xx" value={summary.status_5xx} />
         </div>
       ) : null}
-      {message ? <p style={{ marginBottom: 0 }}>{message}</p> : null}
+      {message ? <p className="message message-error">{message}</p> : null}
     </section>
   );
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div style={{ border: "1px solid #ddd", borderRadius: 6, padding: "0.5rem" }}>
-      <div style={{ fontSize: "0.8rem", color: "#444" }}>{label}</div>
-      <div style={{ fontSize: "1.25rem", fontWeight: 700 }}>{value}</div>
+    <div className="metric-card">
+      <div className="metric-label">{label}</div>
+      <div className="metric-value">{value}</div>
     </div>
   );
 }

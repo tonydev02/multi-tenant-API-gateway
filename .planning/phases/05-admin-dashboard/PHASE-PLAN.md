@@ -74,3 +74,9 @@ Implement production-style admin dashboard capabilities for tenant management, A
 - Historical analytics storage, charting pipelines, or BI exports.
 - API key rotation policies beyond create/list/revoke MVP flows.
 - Full design-system/theming overhaul.
+
+## UI polish addendum (2026-03-19)
+1. Introduce a shared frontend stylesheet with consistent typography, spacing, color tokens, and responsive layout behavior.
+2. Replace one-off inline styles in auth and dashboard components with semantic class-based styling.
+3. Improve information hierarchy and visual feedback states (primary/secondary actions, status messages, table readability) without changing API behavior.
+4. Re-run verification (`go test`, `go vet`, backend build, frontend build`) to keep repository health checks green.
