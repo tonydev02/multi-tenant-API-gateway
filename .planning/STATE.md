@@ -10,7 +10,7 @@
 - Phase 02 runtime smoke checks are passing after moving Docker port mappings away from default local ports.
 - Phase 03 tenant-aware Redis-backed rate limiting is implemented and verified.
 - Phase 04 tenant-safe proxying and structured request logging are implemented and verified.
-- Phase 05 planning docs are now defined for admin dashboard implementation.
+- Phase 05 admin dashboard, tenant/key management, and tenant-scoped traffic visibility are implemented and verified.
 
 ## Assumptions
 - MVP will prioritize clear architecture over feature depth.
@@ -28,6 +28,6 @@
 - None.
 
 ## Next actions
-1. Implement Phase 05 dashboard foundation and authenticated app shell.
-2. Implement Phase 05 tenant/API key management UI flows.
-3. Implement tenant-scoped traffic/rate-limit summary endpoint and dashboard widgets.
+1. Start Phase 06 deploy and observability implementation.
+2. Define metrics/log shipping integration boundaries for runtime operations.
+3. Prepare Phase 05 PR with UAT and smoke-test evidence.
