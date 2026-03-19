@@ -9,6 +9,42 @@ export type Claims = {
   exp: number;
 };
 
+export type Tenant = {
+  id: number;
+  name: string;
+  slug: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type APIKey = {
+  id: number;
+  tenant_id: number;
+  name: string;
+  prefix: string;
+  created_at: string;
+  revoked_at?: string;
+};
+
+export type APIKeyCreateResult = {
+  id: number;
+  tenant_id: number;
+  name: string;
+  prefix: string;
+  api_key: string;
+  created_at: string;
+};
+
+export type TrafficSummary = {
+  tenant_id: number;
+  total_requests: number;
+  rate_limited_requests: number;
+  status_2xx: number;
+  status_4xx: number;
+  status_5xx: number;
+  avg_latency_ms: number;
+};
+
 const apiBase = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -53,5 +89,55 @@ export async function getMe(token: string): Promise<Claims> {
     headers: {
       Authorization: `Bearer ${token}`
     }
+  });
+}
+
+function authHeaders(token: string): HeadersInit {
+  return {
+    Authorization: `Bearer ${token}`
+  };
+}
+
+export async function getCurrentTenant(token: string): Promise<Tenant> {
+  return request<Tenant>("/api/admin/tenants/current", {
+    method: "GET",
+    headers: authHeaders(token)
+  });
+}
+
+export async function updateCurrentTenant(token: string, input: { name: string }): Promise<Tenant> {
+  return request<Tenant>("/api/admin/tenants/current", {
+    method: "PATCH",
+    headers: authHeaders(token),
+    body: JSON.stringify(input)
+  });
+}
+
+export async function createAPIKey(token: string, input: { name: string }): Promise<APIKeyCreateResult> {
+  return request<APIKeyCreateResult>("/api/admin/api-keys", {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(input)
+  });
+}
+
+export async function listAPIKeys(token: string): Promise<APIKey[]> {
+  return request<APIKey[]>("/api/admin/api-keys", {
+    method: "GET",
+    headers: authHeaders(token)
+  });
+}
+
+export async function revokeAPIKey(token: string, id: number): Promise<{ status: string }> {
+  return request<{ status: string }>(`/api/admin/api-keys/${id}/revoke`, {
+    method: "POST",
+    headers: authHeaders(token)
+  });
+}
+
+export async function getTrafficSummary(token: string): Promise<TrafficSummary> {
+  return request<TrafficSummary>("/api/admin/traffic/summary", {
+    method: "GET",
+    headers: authHeaders(token)
   });
 }

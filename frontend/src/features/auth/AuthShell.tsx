@@ -3,14 +3,16 @@ import { Claims, getMe, login, registerTenant } from "../../lib/api";
 
 type Mode = "login" | "register";
 
-export function AuthShell() {
+type AuthShellProps = {
+  onAuthenticated: (session: { token: string; claims: Claims }) => void;
+};
+
+export function AuthShell({ onAuthenticated }: AuthShellProps) {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("admin@acme.local");
   const [password, setPassword] = useState("changeme123");
   const [tenantName, setTenantName] = useState("Acme");
   const [tenantSlug, setTenantSlug] = useState("acme");
-  const [token, setToken] = useState("");
-  const [claims, setClaims] = useState<Claims | null>(null);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -31,10 +33,8 @@ export function AuthShell() {
         setMode("login");
       } else {
         const auth = await login({ email, password });
-        setToken(auth.token);
         const me = await getMe(auth.token);
-        setClaims(me);
-        setMessage("Login successful.");
+        onAuthenticated({ token: auth.token, claims: me });
       }
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Unknown error");
@@ -46,7 +46,7 @@ export function AuthShell() {
   return (
     <main style={{ fontFamily: "sans-serif", margin: "2rem auto", maxWidth: 960 }}>
       <h1>Gateway Admin Dashboard</h1>
-      <p>Phase 02 auth and tenancy shell.</p>
+      <p>Admin authentication and tenant onboarding.</p>
 
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
         <button disabled={loading || mode === "login"} onClick={() => setMode("login")}>
@@ -84,21 +84,6 @@ export function AuthShell() {
       </form>
 
       {message && <p style={{ marginTop: "1rem" }}>{message}</p>}
-
-      {claims && (
-        <section style={{ marginTop: "1.5rem" }}>
-          <h2>Session</h2>
-          <ul>
-            <li>Email: {claims.email}</li>
-            <li>Tenant ID: {claims.tenant_id}</li>
-            <li>Admin ID: {claims.sub}</li>
-          </ul>
-          <details>
-            <summary>JWT</summary>
-            <code>{token}</code>
-          </details>
-        </section>
-      )}
     </main>
   );
 }
