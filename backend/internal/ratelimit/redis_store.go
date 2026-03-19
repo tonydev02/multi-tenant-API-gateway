@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"net"
 	"strings"
 	"time"
 
@@ -31,7 +32,14 @@ func NewRedisClient(ctx context.Context, addr, password string, db int, useTLS b
 		DB:       db,
 	}
 	if useTLS {
-		opts.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12}
+		serverName := addr
+		if host, _, err := net.SplitHostPort(addr); err == nil && host != "" {
+			serverName = host
+		}
+		opts.TLSConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12,
+			ServerName: serverName,
+		}
 	}
 
 	client := redis.NewClient(opts)
