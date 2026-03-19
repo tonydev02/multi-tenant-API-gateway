@@ -1,98 +1,136 @@
 # Multi-Tenant API Gateway SaaS
 
-Production-style multi-tenant API gateway scaffold with a Go backend, React + TypeScript admin dashboard UI, and PostgreSQL/Redis local dependencies.
+Production-style API gateway MVP built to demonstrate why Go is a strong fit for concurrent, network-heavy backend systems.
 
-## Project layout
-- `backend/`: Go API service with health, auth, tenancy, and API key flows
-- `frontend/`: React + TypeScript admin dashboard with auth, tenant, key, and traffic views
-- `.planning/`: project and phase planning docs
-- `docker-compose.yml`: local PostgreSQL and Redis
+## Why This Project
+- One shared gateway serves multiple tenants safely.
+- Tenant identity is resolved server-side from trusted credentials, not client input.
+- Core gateway concerns are implemented end-to-end.
+- Authentication and tenancy.
+- Tenant-aware rate limiting.
+- Tenant-safe reverse proxying.
+- Structured request logging.
+- Admin dashboard workflows for tenant operations.
+
+## What Is Implemented (Through Phase 05)
+- Backend: Go (`net/http`) REST service
+- Frontend: React + TypeScript admin dashboard
+- Data: PostgreSQL (system of record) + Redis (rate limiting)
+- Local infra: Docker Compose
+
+### Admin capabilities
+- Register tenant + admin user
+- Login with JWT
+- View/update current tenant
+- Create/list/revoke API keys
+- View tenant-scoped traffic summary
+
+### Consumer capabilities
+- Authenticate with `X-API-Key`
+- Resolve tenant identity (`/api/consumer/whoami`)
+- Proxy requests to tenant-scoped upstreams (`/api/consumer/proxy/...`)
+
+## Multi-Tenancy Guarantees
+- Tenant context is inferred from JWT claims (admin) or API key lookup (consumer).
+- Client-supplied tenant identifiers are not trusted for routing or data access.
+- Rate limiting keys are tenant-aware.
+- Proxy upstream resolution is tenant + service scoped.
+- Traffic summary is tenant-scoped from auth context.
+
+## Repository Layout
+- `backend/` Go API service
+- `frontend/` React admin dashboard
+- `docs/` architecture and API docs
+- `.planning/` phase plans, UAT, and status tracking
+- `docker-compose.yml` PostgreSQL + Redis for local development
 
 ## Prerequisites
-- Go 1.25+
-- Node.js 20+
-- npm 10+
+- Go `1.25+`
+- Node.js `20+`
+- npm `10+`
 - Docker + Docker Compose
 
 ## Quickstart
-1. Copy env defaults:
-   - `cp .env.example .env`
-2. Load environment variables:
-   - `set -a; source .env; set +a`
-3. Start data services:
-   - `make compose-up`
-4. Start backend:
-   - `make backend-run`
-5. In another terminal, install frontend deps and run dev server:
-   - `make frontend-install`
-   - `cd frontend && npm run dev`
+```bash
+cp .env.example .env
+set -a; source .env; set +a
+make compose-up
+make backend-run
+```
 
-By default this project maps Docker ports to `55432` (PostgreSQL) and `56379` (Redis) to avoid conflicts with local host services.
-If frontend calls are blocked by CORS, ensure `FRONTEND_ORIGIN` in `.env` matches your frontend URL (default `http://localhost:5173`).
+In another terminal:
+```bash
+make frontend-install
+cd frontend && npm run dev
+```
 
-## Verification commands
-- `make backend-test`
-- `make backend-vet`
-- `make backend-build`
-- `make frontend-build`
-- `make compose-config`
-- Runtime rate-limit smoke check (example):
-  - call a protected endpoint repeatedly and verify HTTP `429` after threshold
+Open `http://localhost:5173`.
 
-## API endpoints (current)
-- `GET /health` -> `200 {"status":"ok"}`
-- `POST /api/admin/tenants/register` -> create tenant + admin user
-- `POST /api/admin/login` -> get JWT
-- `GET /api/admin/me` -> validate JWT and return claims
-- `GET/PATCH/DELETE /api/admin/tenants/current` -> tenant CRUD on current tenant
-- `POST /api/admin/api-keys` -> create API key (plaintext returned once)
-- `GET /api/admin/api-keys` -> list tenant API keys
-- `POST /api/admin/api-keys/{id}/revoke` -> revoke key
-- `GET /api/admin/traffic/summary` -> tenant-scoped traffic + rate-limit summary for dashboard
-- `GET /api/consumer/whoami` -> tenant resolution via `X-API-Key`
-- `ANY /api/consumer/proxy/{service}/{path...}` -> tenant-safe upstream proxying via `X-API-Key`
+Notes:
+- Default local PostgreSQL port: `55432`
+- Default local Redis port: `56379`
+- If CORS blocks frontend calls, confirm `.env` `FRONTEND_ORIGIN` matches frontend URL.
 
-## Admin dashboard (Phase 05)
-- Login/register flow boots into an authenticated dashboard session.
-- Tenant panel supports reading and updating current tenant name.
-- API key panel supports list/create/revoke operations.
-- Traffic panel reads `GET /api/admin/traffic/summary` and shows:
-  - `total_requests`
-  - `rate_limited_requests`
-  - `status_2xx`, `status_4xx`, `status_5xx`
-  - `avg_latency_ms`
+## Verification Commands
+```bash
+make backend-test
+make backend-vet
+make backend-build
+make frontend-build
+make compose-config
+```
 
-## Documentation
-- `docs/architecture.md`: current architecture, request flows, tenancy boundaries, and data model.
-- `docs/api-overview.md`: quick endpoint map for implemented MVP APIs.
+## API Surface (Current)
+- `GET /health`
+- `POST /api/admin/tenants/register`
+- `POST /api/admin/login`
+- `GET /api/admin/me`
+- `GET /api/admin/tenants/current`
+- `PATCH /api/admin/tenants/current`
+- `DELETE /api/admin/tenants/current`
+- `POST /api/admin/api-keys`
+- `GET /api/admin/api-keys`
+- `POST /api/admin/api-keys/{id}/revoke`
+- `GET /api/admin/traffic/summary`
+- `GET /api/consumer/whoami`
+- `ANY /api/consumer/proxy/{service}/{path...}`
 
-## Dependencies added and why
+## Interview Demo Script (Suggested)
+1. Start infra, backend, and frontend.
+2. Register/login via admin dashboard.
+3. Update tenant name and show persistence.
+4. Create API key and show one-time plaintext secret.
+5. Use key on `/api/consumer/whoami`.
+6. Revoke key and show access is denied.
+7. Trigger rate limiting and show `429`.
+8. Show traffic summary updates (`rate_limited_requests`, status counters).
+9. Attempt tenant spoofing header and show tenant context remains auth-bound.
 
+## Architecture and API Docs
+- `docs/architecture.md`
+- `docs/api-overview.md`
+
+## Dependencies and Rationale
 ### Backend
-- `github.com/lib/pq`: PostgreSQL driver for `database/sql`.
-- `golang.org/x/crypto/bcrypt`: password hashing/verification for admin credentials.
-- `github.com/redis/go-redis/v9`: Redis client for tenant-aware rate-limiting counters.
+- `github.com/lib/pq` PostgreSQL driver for `database/sql`.
+- `golang.org/x/crypto/bcrypt` secure password hashing/verification.
+- `github.com/redis/go-redis/v9` Redis client for rate-limiting counters.
 
 ### Frontend
-- `react`: UI runtime for admin dashboard.
-- `react-dom`: browser rendering for React.
-- `typescript`: typed frontend development.
-- `vite`: fast local dev server and production build.
-- `@vitejs/plugin-react`: React JSX/Fast Refresh support in Vite.
-- `@types/react`, `@types/react-dom`: TypeScript type definitions.
-- `@types/node`: Node.js type definitions required by Vite/TypeScript config.
+- `react`, `react-dom`, `typescript`, `vite`, `@vitejs/plugin-react`.
 
 ### Infrastructure
-- `postgres:16-alpine`: relational storage baseline for tenant and auth data.
-- `redis:7-alpine`: in-memory store for caching/rate-limiting data.
+- `postgres:16-alpine`
+- `redis:7-alpine`
 
-## Proxy configuration
-- `PROXY_TIMEOUT_SECONDS`: upstream timeout for proxied requests (default `10`).
-- `PROXY_UPSTREAMS`: tenant-safe route map loaded at startup.
-  - Format: `<tenant_id>:<service>=<base_url>,<tenant_id>:<service>=<base_url>`
-  - Example: `1:billing=http://localhost:18081,1:catalog=http://localhost:18082,2:billing=http://localhost:28081`
+## Config Highlights
+- `JWT_SECRET`, `JWT_ISSUER`, `JWT_EXPIRY_MINUTES`
+- `DATABASE_URL`
+- `REDIS_ADDR`, `REDIS_PASSWORD`, `REDIS_DB`
+- `RATE_LIMIT_REQUESTS`, `RATE_LIMIT_WINDOW_SECONDS`
+- `PROXY_TIMEOUT_SECONDS`, `PROXY_UPSTREAMS`
 
-## Structured request logs
-- Gateway logs are JSON (`log/slog`) and emitted once per request.
-- Required fields: `tenant_id`, `route`, `status`, `latency_ms`, `request_id`.
-- `X-Request-ID` is returned to clients and forwarded to upstream services.
+## Logging
+- Structured JSON request logs via `log/slog`
+- Required fields: `tenant_id`, `route`, `status`, `latency_ms`, `request_id`
+- `X-Request-ID` is returned in responses and forwarded upstream
