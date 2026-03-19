@@ -56,7 +56,7 @@ func main() {
 	tenantStore := tenant.NewStore(database)
 	authStore := auth.NewStore(database)
 	jwtManager := auth.NewJWTManager(cfg.JWTSecret, cfg.JWTIssuer, cfg.JWTExpiry)
-	redisClient, err := ratelimit.NewRedisClient(context.Background(), cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB, cfg.RedisTLS)
+	redisClient, err := ratelimit.NewRedisClient(context.Background(), cfg.RedisAddr, cfg.RedisUsername, cfg.RedisPassword, cfg.RedisDB, cfg.RedisTLS)
 	if err != nil {
 		log.Fatalf("open redis client: %v", err)
 	}

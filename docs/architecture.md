@@ -39,7 +39,7 @@ This repository is a monorepo for a multi-tenant API gateway SaaS MVP:
 ## Deployment design (Phase 06)
 - **Backend**: containerized Go service (`backend/Dockerfile`) deployed to Render.
 - **Database**: Neon PostgreSQL (`DATABASE_URL` with `sslmode=require`).
-- **Rate limiting store**: Upstash Redis (`REDIS_ADDR`, `REDIS_PASSWORD`, `REDIS_TLS=true`).
+- **Rate limiting store**: Upstash Redis (`REDIS_ADDR`, `REDIS_USERNAME=default`, `REDIS_PASSWORD`, `REDIS_TLS=true`).
 - **Frontend**: Cloudflare Pages with `VITE_API_BASE_URL` pointing to backend URL.
 
 ## Request flow highlights

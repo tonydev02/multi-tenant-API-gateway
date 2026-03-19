@@ -25,6 +25,7 @@ type Config struct {
 	DBMaxOpen       int
 	DBMaxIdle       int
 	RedisAddr       string
+	RedisUsername   string
 	RedisPassword   string
 	RedisDB         int
 	RedisTLS        bool
@@ -58,6 +59,7 @@ func Load() (Config, error) {
 		BootstrapMail:   getenv("BOOTSTRAP_ADMIN_EMAIL", "admin@acme.local"),
 		BootstrapPass:   getenv("BOOTSTRAP_ADMIN_PASSWORD", "changeme123456"),
 		RedisAddr:       getenv("REDIS_ADDR", fmt.Sprintf("%s:%s", getenv("REDIS_HOST", "127.0.0.1"), getenv("REDIS_PORT", "56379"))),
+		RedisUsername:   getenv("REDIS_USERNAME", ""),
 		RedisPassword:   getenv("REDIS_PASSWORD", ""),
 		RedisTLS:        strings.EqualFold(getenv("REDIS_TLS", "false"), "true"),
 		RateLimitReqs:   60,
