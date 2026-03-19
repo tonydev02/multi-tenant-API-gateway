@@ -1,6 +1,6 @@
 # STATE
 
-## Current status (2026-03-17)
+## Current status (2026-03-19)
 - Phase 01 scaffold is implemented for backend, frontend, and local infra config.
 - Backend verification (`go test`, `go vet`, `go build`) is passing.
 - Frontend verification (`npm run build`) is passing.
@@ -10,12 +10,14 @@
 - Phase 02 runtime smoke checks are passing after moving Docker port mappings away from default local ports.
 - Phase 03 tenant-aware Redis-backed rate limiting is implemented and verified.
 - Phase 04 tenant-safe proxying and structured request logging are implemented and verified.
+- Phase 05 planning docs are now defined for admin dashboard implementation.
 
 ## Assumptions
 - MVP will prioritize clear architecture over feature depth.
 - Initial backend can start with standard library only.
 - Frontend scaffold may rely on Vite defaults for speed.
 - Local development uses Docker Compose as the source of truth for data services.
+- Phase 05 "basic traffic visibility" will use tenant-scoped in-process counters for MVP, not historical analytics storage.
 
 ## Open decisions
 - Exact backend package boundaries after initial scaffold.
@@ -26,6 +28,6 @@
 - None.
 
 ## Next actions
-1. Start Phase 05 admin dashboard implementation.
-2. Add runtime smoke checks for proxy against real upstream containers.
-3. Prepare Phase 04 PR with implementation notes and test evidence.
+1. Implement Phase 05 dashboard foundation and authenticated app shell.
+2. Implement Phase 05 tenant/API key management UI flows.
+3. Implement tenant-scoped traffic/rate-limit summary endpoint and dashboard widgets.
