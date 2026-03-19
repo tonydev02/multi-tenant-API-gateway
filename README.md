@@ -1,10 +1,10 @@
 # Multi-Tenant API Gateway SaaS
 
-Production-style multi-tenant API gateway scaffold with a Go backend, React + TypeScript admin UI, and PostgreSQL/Redis local dependencies.
+Production-style multi-tenant API gateway scaffold with a Go backend, React + TypeScript admin dashboard UI, and PostgreSQL/Redis local dependencies.
 
 ## Project layout
 - `backend/`: Go API service with health, auth, tenancy, and API key flows
-- `frontend/`: React + TypeScript admin shell with login/tenant registration
+- `frontend/`: React + TypeScript admin dashboard with auth, tenant, key, and traffic views
 - `.planning/`: project and phase planning docs
 - `docker-compose.yml`: local PostgreSQL and Redis
 
@@ -48,8 +48,19 @@ If frontend calls are blocked by CORS, ensure `FRONTEND_ORIGIN` in `.env` matche
 - `POST /api/admin/api-keys` -> create API key (plaintext returned once)
 - `GET /api/admin/api-keys` -> list tenant API keys
 - `POST /api/admin/api-keys/{id}/revoke` -> revoke key
+- `GET /api/admin/traffic/summary` -> tenant-scoped traffic + rate-limit summary for dashboard
 - `GET /api/consumer/whoami` -> tenant resolution via `X-API-Key`
 - `ANY /api/consumer/proxy/{service}/{path...}` -> tenant-safe upstream proxying via `X-API-Key`
+
+## Admin dashboard (Phase 05)
+- Login/register flow boots into an authenticated dashboard session.
+- Tenant panel supports reading and updating current tenant name.
+- API key panel supports list/create/revoke operations.
+- Traffic panel reads `GET /api/admin/traffic/summary` and shows:
+  - `total_requests`
+  - `rate_limited_requests`
+  - `status_2xx`, `status_4xx`, `status_5xx`
+  - `avg_latency_ms`
 
 ## Documentation
 - `docs/architecture.md`: current architecture, request flows, tenancy boundaries, and data model.

@@ -7,7 +7,7 @@ This repository is a monorepo for a multi-tenant API gateway SaaS MVP:
 - **Data**: PostgreSQL (system of record) + Redis (reserved for rate limiting/caching phases)
 - **Local runtime**: Docker Compose
 
-## Current implementation scope (through Phase 04)
+## Current implementation scope (through Phase 05)
 - Health endpoint (`GET /health`)
 - Tenant registration and tenant CRUD (current tenant)
 - Admin authentication via JWT
@@ -16,6 +16,8 @@ This repository is a monorepo for a multi-tenant API gateway SaaS MVP:
 - Tenant-aware fixed-window rate limiting backed by Redis
 - Tenant-safe consumer proxy routing (`/api/consumer/proxy/{service}/{path...}`)
 - Request ID propagation and structured JSON request logging
+- Admin dashboard for tenant profile, API key lifecycle, and traffic summary visibility
+- Tenant-scoped in-memory traffic metrics exposed via `GET /api/admin/traffic/summary`
 
 ## Repository structure
 - `backend/`
@@ -25,8 +27,10 @@ This repository is a monorepo for a multi-tenant API gateway SaaS MVP:
   - `internal/tenant`: tenant model + postgres store
   - `internal/auth`: password hashing, JWT, API key logic, auth store
   - `internal/http`: handlers, middleware, routing
+  - `internal/metrics`: in-process tenant traffic aggregation service
 - `frontend/`
-  - `src/features/auth`: basic login/register shell
+  - `src/features/auth`: login/register flow
+  - `src/features/dashboard`: tenant, API key, and traffic summary panels
   - `src/lib/api.ts`: REST client helpers
 - `docker-compose.yml`: postgres + redis services
 - `.planning/`: phased planning and status docs
@@ -63,6 +67,12 @@ This repository is a monorepo for a multi-tenant API gateway SaaS MVP:
 2. Logging middleware emits one JSON log entry after each request.
 3. Required log fields: `tenant_id`, `route`, `status`, `latency_ms`, `request_id`.
 
+### Admin visibility flow
+1. Dashboard calls `GET /api/admin/traffic/summary` with JWT bearer token.
+2. Backend resolves tenant from JWT claims in request context.
+3. In-process metrics service returns only that tenant's counters/latency summary.
+4. Dashboard renders request totals, rate-limit counts, status buckets, and average latency.
+
 ## Multi-tenancy boundaries
 - Tenant identity is resolved server-side from JWT/API key.
 - Backend does not trust client-supplied tenant identifiers.
@@ -96,4 +106,4 @@ Primary backend config is environment-based via `.env`:
 - Plain API key secrets are never persisted
 
 ## Next architectural milestones
-- Phase 05+: admin UX expansion and operational hardening
+- Phase 06+: deploy hardening and observability integrations
