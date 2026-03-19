@@ -15,6 +15,7 @@ import (
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/config"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/db"
 	gatewayhttp "github.com/namta/multi-tenant-api-gateway/backend/internal/http"
+	"github.com/namta/multi-tenant-api-gateway/backend/internal/metrics"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/proxy"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/ratelimit"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/tenant"
@@ -66,6 +67,7 @@ func main() {
 	}()
 	rateLimiter := ratelimit.NewService(ratelimit.NewRedisStore(redisClient))
 	adminPolicy := ratelimit.Policy{Requests: cfg.RateLimitReqs, Window: cfg.RateLimitWindow}
+	trafficMetrics := metrics.NewService()
 	proxyStore, err := proxy.NewMemoryStoreFromConfig(cfg.ProxyUpstreams)
 	if err != nil {
 		log.Fatalf("load proxy upstream config: %v", err)
@@ -81,6 +83,7 @@ func main() {
 			JWTManager:     jwtManager,
 			APIKeyAuth:     auth.NewAPIKeyAuthenticator(authStore),
 			RateLimiter:    rateLimiter,
+			Metrics:        trafficMetrics,
 			AdminLimit:     adminPolicy,
 			ConsumerLimit:  adminPolicy,
 			ProxyResolver:  proxyResolver,

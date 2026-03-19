@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/auth"
+	"github.com/namta/multi-tenant-api-gateway/backend/internal/metrics"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/proxy"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/ratelimit"
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/tenant"
@@ -18,6 +19,7 @@ type Dependencies struct {
 	JWTManager     *auth.JWTManager
 	APIKeyAuth     *auth.APIKeyAuthenticator
 	RateLimiter    *ratelimit.Service
+	Metrics        *metrics.Service
 	AdminLimit     ratelimit.Policy
 	ConsumerLimit  ratelimit.Policy
 	ProxyResolver  proxy.Resolver
@@ -53,12 +55,13 @@ func NewRouter(deps Dependencies) http.Handler {
 	mux.Handle("POST /api/admin/api-keys", adminGuard(createAPIKeyHandler(deps.AuthStore)))
 	mux.Handle("GET /api/admin/api-keys", adminGuard(listAPIKeysHandler(deps.AuthStore)))
 	mux.Handle("POST /api/admin/api-keys/{id}/revoke", adminGuard(revokeAPIKeyHandler(deps.AuthStore)))
+	mux.Handle("GET /api/admin/traffic/summary", adminGuard(trafficSummaryHandler(deps.Metrics)))
 
 	mux.Handle("GET /api/consumer/whoami", consumerGuard(consumerWhoAmIHandler(deps.TenantStore)))
 	mux.Handle(proxy.ProxyPrefix, proxyGuard(proxy.NewHandler(deps.ProxyResolver, deps.ProxyTimeout)))
 
 	handler := withCORS(deps.FrontendOrigin)(mux)
-	handler = withRequestLogging(deps.Logger)(handler)
+	handler = withRequestLogging(deps.Logger, deps.Metrics)(handler)
 	handler = withRequestID()(handler)
 	return handler
 }

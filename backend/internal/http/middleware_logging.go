@@ -15,6 +15,10 @@ type statusRecorder struct {
 	status int
 }
 
+type trafficRecorder interface {
+	Record(tenantID int64, statusCode int, latency time.Duration)
+}
+
 const gatewayTenantIDHeader = "X-Gateway-Tenant-ID"
 
 func (r *statusRecorder) WriteHeader(statusCode int) {
@@ -22,7 +26,7 @@ func (r *statusRecorder) WriteHeader(statusCode int) {
 	r.ResponseWriter.WriteHeader(statusCode)
 }
 
-func withRequestLogging(logger *slog.Logger) func(http.Handler) http.Handler {
+func withRequestLogging(logger *slog.Logger, recorder trafficRecorder) func(http.Handler) http.Handler {
 	if logger == nil {
 		logger = slog.Default()
 	}
@@ -44,12 +48,14 @@ func withRequestLogging(logger *slog.Logger) func(http.Handler) http.Handler {
 				tenantID = parsed
 			}
 
+			latency := time.Since(started)
+
 			attrs := []any{
 				"request_id", requestID,
 				"tenant_id", tenantID,
 				"route", normalizedRoute(r),
 				"status", rec.status,
-				"latency_ms", time.Since(started).Milliseconds(),
+				"latency_ms", latency.Milliseconds(),
 				"method", r.Method,
 				"path", r.URL.Path,
 			}
@@ -58,6 +64,9 @@ func withRequestLogging(logger *slog.Logger) func(http.Handler) http.Handler {
 			}
 
 			logger.Info("request complete", attrs...)
+			if recorder != nil {
+				recorder.Record(tenantID, rec.status, latency)
+			}
 		})
 	}
 }
