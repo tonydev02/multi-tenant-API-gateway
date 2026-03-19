@@ -56,7 +56,7 @@ func main() {
 	tenantStore := tenant.NewStore(database)
 	authStore := auth.NewStore(database)
 	jwtManager := auth.NewJWTManager(cfg.JWTSecret, cfg.JWTIssuer, cfg.JWTExpiry)
-	redisClient, err := ratelimit.NewRedisClient(context.Background(), cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
+	redisClient, err := ratelimit.NewRedisClient(context.Background(), cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB, cfg.RedisTLS)
 	if err != nil {
 		log.Fatalf("open redis client: %v", err)
 	}
@@ -90,6 +90,20 @@ func main() {
 			ProxyTimeout:   cfg.ProxyTimeout,
 			Logger:         logger,
 			FrontendOrigin: cfg.FrontendOrigin,
+			ReadyCheck: func(ctx context.Context) error {
+				dbPingCtx, dbCancel := context.WithTimeout(ctx, 2*time.Second)
+				defer dbCancel()
+				if err := database.PingContext(dbPingCtx); err != nil {
+					return fmt.Errorf("database ping failed: %w", err)
+				}
+
+				redisPingCtx, redisCancel := context.WithTimeout(ctx, 2*time.Second)
+				defer redisCancel()
+				if err := redisClient.Ping(redisPingCtx).Err(); err != nil {
+					return fmt.Errorf("redis ping failed: %w", err)
+				}
+				return nil
+			},
 		}),
 		ReadHeaderTimeout: 5 * time.Second,
 	}

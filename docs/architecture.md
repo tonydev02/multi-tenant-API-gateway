@@ -4,11 +4,13 @@
 This repository is a monorepo for a multi-tenant API gateway SaaS MVP:
 - **Backend**: Go (`net/http`) REST API
 - **Frontend**: React + TypeScript (Vite)
-- **Data**: PostgreSQL (system of record) + Redis (reserved for rate limiting/caching phases)
+- **Data**: PostgreSQL + Redis
 - **Local runtime**: Docker Compose
+- **Internet deployment target (Phase 06)**: Render + Neon + Upstash + Cloudflare Pages
 
-## Current implementation scope (through Phase 05)
+## Current implementation scope (through Phase 06)
 - Health endpoint (`GET /health`)
+- Dependency readiness endpoint (`GET /readyz`)
 - Tenant registration and tenant CRUD (current tenant)
 - Admin authentication via JWT
 - Consumer authentication via API keys
@@ -17,93 +19,52 @@ This repository is a monorepo for a multi-tenant API gateway SaaS MVP:
 - Tenant-safe consumer proxy routing (`/api/consumer/proxy/{service}/{path...}`)
 - Request ID propagation and structured JSON request logging
 - Admin dashboard for tenant profile, API key lifecycle, and traffic summary visibility
-- Tenant-scoped in-memory traffic metrics exposed via `GET /api/admin/traffic/summary`
+- Tenant-scoped in-memory traffic metrics (`GET /api/admin/traffic/summary`)
 
 ## Repository structure
 - `backend/`
   - `cmd/server`: app entrypoint
-  - `internal/config`: env-driven config loading
+  - `internal/config`: env-driven config loading + startup validation
   - `internal/db`: postgres connection + SQL migrations
-  - `internal/tenant`: tenant model + postgres store
-  - `internal/auth`: password hashing, JWT, API key logic, auth store
   - `internal/http`: handlers, middleware, routing
   - `internal/metrics`: in-process tenant traffic aggregation service
 - `frontend/`
   - `src/features/auth`: login/register flow
-  - `src/features/dashboard`: tenant, API key, and traffic summary panels
-  - `src/lib/api.ts`: REST client helpers
-- `docker-compose.yml`: postgres + redis services
-- `.planning/`: phased planning and status docs
+  - `src/features/dashboard`: tenant, API key, traffic summary panels
+- `deployments/`
+  - env templates, runbooks, Render blueprint template, public smoke script
+- `.github/workflows/`
+  - CI checks and deploy-trigger workflows
 
-## Request flow
+## Deployment design (Phase 06)
+- **Backend**: containerized Go service (`backend/Dockerfile`) deployed to Render.
+- **Database**: Neon PostgreSQL (`DATABASE_URL` with `sslmode=require`).
+- **Rate limiting store**: Upstash Redis (`REDIS_ADDR`, `REDIS_PASSWORD`, `REDIS_TLS=true`).
+- **Frontend**: Cloudflare Pages with `VITE_API_BASE_URL` pointing to backend URL.
 
-### Admin flow (JWT)
-1. Admin logs in via `POST /api/admin/login`.
-2. Backend validates credentials (`bcrypt`) and issues signed JWT.
-3. Protected admin routes use `Authorization: Bearer <token>`.
-4. Middleware validates token and injects claims + tenant ID into request context.
+## Request flow highlights
 
-### Consumer flow (API key)
-1. Admin creates API key via `POST /api/admin/api-keys`.
-2. Backend stores only **hashed** key and prefix in DB; plaintext is returned once.
-3. Consumer sends `X-API-Key` on protected consumer route.
-4. Middleware resolves prefix, compares hash, and injects tenant context.
+### Readiness flow
+1. Uptime checks hit `GET /health`.
+2. Readiness checks hit `GET /readyz`.
+3. `readyz` pings PostgreSQL and Redis and returns:
+   - `200` when dependencies are reachable.
+   - `503` when dependencies are unavailable.
 
-### Rate-limiting flow
-1. Middleware reads tenant ID from trusted request context.
-2. Service computes fixed-window bucket using tenant + normalized route + window start.
-3. Redis `INCR` tracks usage; first hit sets key expiry for window rollover.
-4. Requests above threshold return `429` with limit metadata.
-
-### Proxy flow
-1. Consumer calls `ANY /api/consumer/proxy/{service}/{path...}` with `X-API-Key`.
-2. Gateway resolves tenant from API key and applies tenant-aware rate limiting.
-3. Proxy resolver selects upstream from server-side mapping key `{tenant_id, service}`.
-4. Gateway forwards method/path/query/body to upstream using `httputil.ReverseProxy`.
-5. Gateway forwards `X-Request-ID` upstream and returns it to client responses.
-
-### Logging flow
+### Logging/observability flow
 1. Gateway reads or generates `X-Request-ID`.
-2. Logging middleware emits one JSON log entry after each request.
-3. Required log fields: `tenant_id`, `route`, `status`, `latency_ms`, `request_id`.
-
-### Admin visibility flow
-1. Dashboard calls `GET /api/admin/traffic/summary` with JWT bearer token.
-2. Backend resolves tenant from JWT claims in request context.
-3. In-process metrics service returns only that tenant's counters/latency summary.
-4. Dashboard renders request totals, rate-limit counts, status buckets, and average latency.
+2. Logging middleware emits one JSON log entry per request.
+3. Required fields include `tenant_id`, `route`, `status`, `latency_ms`, `request_id`.
+4. Operations runbooks use `request_id` for incident correlation.
 
 ## Multi-tenancy boundaries
 - Tenant identity is resolved server-side from JWT/API key.
 - Backend does not trust client-supplied tenant identifiers.
 - Tenant-scoped operations read tenant ID from context.
-- Core tenant-aware tables include `tenant_id` foreign keys.
 
-## Data model (current)
-Defined in `backend/internal/db/migrations/0001_auth_tenancy.sql`:
-- `tenants`
-- `admin_users` (with `tenant_id` FK)
-- `api_keys` (with `tenant_id` FK, hashed keys, revoke timestamp)
-- `schema_migrations` (migration tracking)
-
-## Configuration
-Primary backend config is environment-based via `.env`:
-- `PORT`
-- `FRONTEND_ORIGIN` (CORS allowlist origin for browser admin UI)
-- `DATABASE_URL`
-- `JWT_SECRET`, `JWT_ISSUER`, `JWT_EXPIRY_MINUTES`
-- `RATE_LIMIT_REQUESTS`, `RATE_LIMIT_WINDOW_SECONDS`
-- `PROXY_TIMEOUT_SECONDS`, `PROXY_UPSTREAMS`
-- bootstrap admin/tenant values
-- Local Docker defaults intentionally use non-standard host ports to avoid conflicts:
-  - PostgreSQL: `55432`
-  - Redis: `56379`
-
-## Security choices (MVP)
-- Passwords hashed with `bcrypt`
-- API keys hashed with SHA-256 and verified with constant-time compare
-- JWT signed with HMAC-SHA256
-- Plain API key secrets are never persisted
-
-## Next architectural milestones
-- Phase 06+: deploy hardening and observability integrations
+## Security and config hardening
+- Configuration is environment-driven.
+- `JWT_SECRET` must be present and at least 32 characters.
+- `ENVIRONMENT` must be `development`, `staging`, or `production`.
+- `BOOTSTRAP_ON_START=true` is only allowed in `development`.
+- For internet-facing deployments, use `BOOTSTRAP_ON_START=false` and rotate secrets.

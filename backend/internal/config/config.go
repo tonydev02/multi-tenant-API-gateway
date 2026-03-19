@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -12,10 +13,12 @@ const (
 	defaultDBMaxOpenConns = 10
 	defaultDBMaxIdleConns = 5
 	defaultJWTExpiryMins  = 60
+	minJWTSecretLen       = 32
 )
 
 // Config contains process configuration loaded from environment variables.
 type Config struct {
+	Environment     string
 	Port            int
 	FrontendOrigin  string
 	DBURL           string
@@ -24,6 +27,7 @@ type Config struct {
 	RedisAddr       string
 	RedisPassword   string
 	RedisDB         int
+	RedisTLS        bool
 	RateLimitReqs   int64
 	RateLimitWindow time.Duration
 	ProxyTimeout    time.Duration
@@ -41,19 +45,21 @@ type Config struct {
 // Load reads config from environment and validates expected values.
 func Load() (Config, error) {
 	cfg := Config{
+		Environment:     getenv("ENVIRONMENT", "development"),
 		Port:            defaultPort,
 		FrontendOrigin:  getenv("FRONTEND_ORIGIN", "http://localhost:5173"),
 		DBMaxOpen:       defaultDBMaxOpenConns,
 		DBMaxIdle:       defaultDBMaxIdleConns,
 		JWTIssuer:       getenv("JWT_ISSUER", "gateway-admin"),
 		JWTExpiry:       time.Duration(defaultJWTExpiryMins) * time.Minute,
-		BootstrapOn:     getenv("BOOTSTRAP_ON_START", "true") == "true",
+		BootstrapOn:     strings.EqualFold(getenv("BOOTSTRAP_ON_START", "true"), "true"),
 		BootstrapName:   getenv("BOOTSTRAP_TENANT_NAME", "Acme"),
 		BootstrapSlug:   getenv("BOOTSTRAP_TENANT_SLUG", "acme"),
 		BootstrapMail:   getenv("BOOTSTRAP_ADMIN_EMAIL", "admin@acme.local"),
-		BootstrapPass:   getenv("BOOTSTRAP_ADMIN_PASSWORD", "changeme123"),
+		BootstrapPass:   getenv("BOOTSTRAP_ADMIN_PASSWORD", "changeme123456"),
 		RedisAddr:       getenv("REDIS_ADDR", fmt.Sprintf("%s:%s", getenv("REDIS_HOST", "127.0.0.1"), getenv("REDIS_PORT", "56379"))),
 		RedisPassword:   getenv("REDIS_PASSWORD", ""),
+		RedisTLS:        strings.EqualFold(getenv("REDIS_TLS", "false"), "true"),
 		RateLimitReqs:   60,
 		RateLimitWindow: 60 * time.Second,
 		ProxyTimeout:    10 * time.Second,
@@ -98,6 +104,9 @@ func Load() (Config, error) {
 	if cfg.JWTSecret == "" {
 		return Config{}, fmt.Errorf("JWT_SECRET is required")
 	}
+	if len(cfg.JWTSecret) < minJWTSecretLen {
+		return Config{}, fmt.Errorf("JWT_SECRET must be at least %d characters", minJWTSecretLen)
+	}
 
 	if rawMins := os.Getenv("JWT_EXPIRY_MINUTES"); rawMins != "" {
 		mins, convErr := strconv.Atoi(rawMins)
@@ -113,6 +122,12 @@ func Load() (Config, error) {
 	if cfg.Port <= 0 || cfg.Port > 65535 {
 		return Config{}, fmt.Errorf("PORT must be between 1 and 65535")
 	}
+	if strings.TrimSpace(cfg.FrontendOrigin) == "" {
+		return Config{}, fmt.Errorf("FRONTEND_ORIGIN is required")
+	}
+	if strings.TrimSpace(cfg.DBURL) == "" {
+		return Config{}, fmt.Errorf("DATABASE_URL is required")
+	}
 	if cfg.DBMaxOpen <= 0 || cfg.DBMaxIdle <= 0 {
 		return Config{}, fmt.Errorf("DB_MAX_OPEN_CONNS and DB_MAX_IDLE_CONNS must be greater than zero")
 	}
@@ -121,6 +136,20 @@ func Load() (Config, error) {
 	}
 	if cfg.ProxyTimeout <= 0 {
 		return Config{}, fmt.Errorf("PROXY_TIMEOUT_SECONDS must be greater than zero")
+	}
+	if cfg.Environment != "development" && cfg.Environment != "staging" && cfg.Environment != "production" {
+		return Config{}, fmt.Errorf("ENVIRONMENT must be one of development, staging, production")
+	}
+	if cfg.Environment != "development" && cfg.BootstrapOn {
+		return Config{}, fmt.Errorf("BOOTSTRAP_ON_START must be false when ENVIRONMENT is %s", cfg.Environment)
+	}
+	if cfg.BootstrapOn {
+		if strings.TrimSpace(cfg.BootstrapName) == "" || strings.TrimSpace(cfg.BootstrapSlug) == "" || strings.TrimSpace(cfg.BootstrapMail) == "" {
+			return Config{}, fmt.Errorf("bootstrap tenant and admin identity fields are required when BOOTSTRAP_ON_START=true")
+		}
+		if len(cfg.BootstrapPass) < 12 {
+			return Config{}, fmt.Errorf("BOOTSTRAP_ADMIN_PASSWORD must be at least 12 characters when BOOTSTRAP_ON_START=true")
+		}
 	}
 
 	return cfg, nil

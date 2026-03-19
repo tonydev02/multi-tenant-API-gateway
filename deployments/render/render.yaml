@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: mtag-backend-staging
+    runtime: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: ENVIRONMENT
+        value: staging
+      - key: PORT
+        value: "8080"
+      - key: FRONTEND_ORIGIN
+        value: https://your-staging-frontend.pages.dev
+      - key: JWT_SECRET
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_ADDR
+        sync: false
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: REDIS_DB
+        value: "0"
+      - key: REDIS_TLS
+        value: "true"
+      - key: BOOTSTRAP_ON_START
+        value: "false"
+      - key: RATE_LIMIT_REQUESTS
+        value: "60"
+      - key: RATE_LIMIT_WINDOW_SECONDS
+        value: "60"
+      - key: PROXY_TIMEOUT_SECONDS
+        value: "10"
+      - key: PROXY_UPSTREAMS
+        sync: false

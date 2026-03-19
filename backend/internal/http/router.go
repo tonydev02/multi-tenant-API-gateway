@@ -1,6 +1,7 @@
 package gatewayhttp
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"time"
@@ -26,6 +27,7 @@ type Dependencies struct {
 	ProxyTimeout   time.Duration
 	Logger         *slog.Logger
 	FrontendOrigin string
+	ReadyCheck     func(context.Context) error
 }
 
 // NewRouter builds the HTTP router for gateway APIs.
@@ -44,6 +46,7 @@ func NewRouter(deps Dependencies) http.Handler {
 	)
 
 	mux.HandleFunc("GET /health", healthHandler)
+	mux.Handle("GET /readyz", readyHandler(deps.ReadyCheck))
 	mux.HandleFunc("POST /api/admin/login", loginHandler(deps.AuthStore, deps.JWTManager))
 	mux.HandleFunc("POST /api/admin/tenants/register", registerTenantHandler(deps.TenantStore, deps.AuthStore))
 

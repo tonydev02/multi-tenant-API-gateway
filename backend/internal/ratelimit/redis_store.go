@@ -2,6 +2,7 @@ package ratelimit
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"strings"
 	"time"
@@ -23,12 +24,17 @@ func NewRedisStore(client redisCounterClient) *RedisStore {
 	return &RedisStore{client: client}
 }
 
-func NewRedisClient(ctx context.Context, addr, password string, db int) (*redis.Client, error) {
-	client := redis.NewClient(&redis.Options{
+func NewRedisClient(ctx context.Context, addr, password string, db int, useTLS bool) (*redis.Client, error) {
+	opts := &redis.Options{
 		Addr:     addr,
 		Password: password,
 		DB:       db,
-	})
+	}
+	if useTLS {
+		opts.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12}
+	}
+
+	client := redis.NewClient(opts)
 
 	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()

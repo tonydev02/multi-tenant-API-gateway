@@ -1,0 +1,25 @@
+name: Deploy Frontend (Cloudflare Pages)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-frontend-cloudflare.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Trigger Cloudflare Pages Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger deploy hook
+        if: ${{ secrets.CLOUDFLARE_PAGES_DEPLOY_HOOK_URL != '' }}
+        run: curl -fsS -X POST "${{ secrets.CLOUDFLARE_PAGES_DEPLOY_HOOK_URL }}"
+
+      - name: Missing deploy hook guard
+        if: ${{ secrets.CLOUDFLARE_PAGES_DEPLOY_HOOK_URL == '' }}
+        run: |
+          echo "CLOUDFLARE_PAGES_DEPLOY_HOOK_URL is not configured"
+          exit 1

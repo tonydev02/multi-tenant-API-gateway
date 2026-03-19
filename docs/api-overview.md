@@ -1,7 +1,8 @@
-# API Overview (MVP Progress)
+# API Overview (MVP Progress Through Phase 06)
 
 ## Health
 - `GET /health`
+- `GET /readyz` (dependency-aware readiness: DB + Redis)
 
 ## Admin auth
 - `POST /api/admin/login`
