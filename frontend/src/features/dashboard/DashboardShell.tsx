@@ -18,7 +18,7 @@ export function DashboardShell({ session, onLogout }: DashboardShellProps) {
 
   return (
     <main>
-      <header className="dashboard-header">
+      <header className="card top-panel dashboard-header">
         <div>
           <h1 className="hero-title">Gateway Admin Dashboard</h1>
           <p className="dashboard-meta">

@@ -45,7 +45,7 @@ export function AuthShell({ onAuthenticated }: AuthShellProps) {
 
   return (
     <main className="auth-shell">
-      <section className="card hero-card">
+      <section className="card top-panel hero-card">
         <h1 className="hero-title">Gateway Admin Dashboard</h1>
         <p className="hero-subtitle">
           Production-style multi-tenant API gateway SaaS built with Go for concurrent, network-heavy backend

@@ -15,6 +15,10 @@
   --shadow: 0 22px 38px -24px rgba(8, 33, 41, 0.45);
 }
 
+html {
+  background: #eef4f7;
+}
+
 *,
 *::before,
 *::after {
@@ -29,6 +33,10 @@ body {
     radial-gradient(circle at 80% 0%, rgba(255, 174, 113, 0.25), transparent 45%),
     linear-gradient(175deg, #f8fbfc 0%, #eef4f7 42%, #e6eff4 100%);
   color: var(--text);
+}
+
+#root {
+  min-height: 100vh;
 }
 
 a {
@@ -48,7 +56,8 @@ p {
 
 main {
   width: min(1100px, calc(100vw - 2.5rem));
-  margin: 2rem auto;
+  margin: 0 auto 2rem;
+  padding-top: 1.4rem;
 }
 
 .auth-shell {
@@ -64,8 +73,12 @@ main {
 }
 
 .hero-card {
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.top-panel {
   padding: 1.4rem;
+  background: linear-gradient(145deg, #ffffff 0%, #f3f9fc 100%);
 }
 
 .hero-title {
@@ -194,7 +207,7 @@ button:not(:disabled):hover {
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-  margin-bottom: 1.1rem;
+  margin-bottom: 1.2rem;
 }
 
 .dashboard-meta {
