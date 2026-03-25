@@ -107,3 +107,7 @@ Required repository secrets:
 ## Architecture and API Docs
 - `docs/architecture.md`
 - `docs/api-overview.md`
+- `docs/request-flow.md`
+- `docs/config-reference.md`
+- `docs/security-model.md`
+- `docs/observability.md`

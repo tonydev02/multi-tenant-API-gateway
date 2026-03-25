@@ -18,6 +18,7 @@
 ## Maintenance updates (2026-03-25)
 - Route normalization used by request logging and tenant-aware rate limiting now also normalizes UUID and ULID path segments (in addition to numeric IDs) to `:id`.
 - Added table-driven tests for normalized route behavior to protect key cardinality assumptions.
+- Added interview-focused documentation set in `/docs`: request flow, configuration reference, security model, and observability guide.
 
 ## Assumptions
 - MVP prioritizes architecture clarity over feature depth.
