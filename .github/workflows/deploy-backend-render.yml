@@ -16,13 +16,15 @@ jobs:
        github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
     steps:
       - name: Trigger deploy hook
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
-        run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+        if: ${{ env.RENDER_DEPLOY_HOOK_URL != '' }}
+        run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
 
       - name: Missing deploy hook guard
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL == '' }}
+        if: ${{ env.RENDER_DEPLOY_HOOK_URL == '' }}
         run: |
           echo "RENDER_DEPLOY_HOOK_URL is not configured"
           exit 1

@@ -13,13 +13,15 @@ jobs:
   deploy:
     name: Trigger Cloudflare Pages Deploy
     runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_PAGES_DEPLOY_HOOK_URL: ${{ secrets.CLOUDFLARE_PAGES_DEPLOY_HOOK_URL }}
     steps:
       - name: Trigger deploy hook
-        if: ${{ secrets.CLOUDFLARE_PAGES_DEPLOY_HOOK_URL != '' }}
-        run: curl -fsS -X POST "${{ secrets.CLOUDFLARE_PAGES_DEPLOY_HOOK_URL }}"
+        if: ${{ env.CLOUDFLARE_PAGES_DEPLOY_HOOK_URL != '' }}
+        run: curl -fsS -X POST "$CLOUDFLARE_PAGES_DEPLOY_HOOK_URL"
 
       - name: Missing deploy hook guard
-        if: ${{ secrets.CLOUDFLARE_PAGES_DEPLOY_HOOK_URL == '' }}
+        if: ${{ env.CLOUDFLARE_PAGES_DEPLOY_HOOK_URL == '' }}
         run: |
           echo "CLOUDFLARE_PAGES_DEPLOY_HOOK_URL is not configured"
           exit 1
