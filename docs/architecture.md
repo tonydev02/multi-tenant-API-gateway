@@ -55,7 +55,8 @@ This repository is a monorepo for a multi-tenant API gateway SaaS MVP:
 1. Gateway reads or generates `X-Request-ID`.
 2. Logging middleware emits one JSON log entry per request.
 3. Required fields include `tenant_id`, `route`, `status`, `latency_ms`, `request_id`.
-4. Operations runbooks use `request_id` for incident correlation.
+4. Route values are normalized to reduce high-cardinality keys (numeric IDs, UUIDs, and ULIDs become `:id`).
+5. Operations runbooks use `request_id` for incident correlation.
 
 ## Multi-tenancy boundaries
 - Tenant identity is resolved server-side from JWT/API key.

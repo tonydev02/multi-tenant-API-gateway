@@ -15,6 +15,10 @@
   - deployment templates and runbooks,
   - CI + deployment trigger workflows.
 
+## Maintenance updates (2026-03-25)
+- Route normalization used by request logging and tenant-aware rate limiting now also normalizes UUID and ULID path segments (in addition to numeric IDs) to `:id`.
+- Added table-driven tests for normalized route behavior to protect key cardinality assumptions.
+
 ## Assumptions
 - MVP prioritizes architecture clarity over feature depth.
 - Provider-native observability is sufficient for phase 06 (OpenTelemetry deferred).

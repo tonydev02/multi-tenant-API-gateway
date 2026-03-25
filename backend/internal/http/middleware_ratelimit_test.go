@@ -71,3 +71,47 @@ func TestRateLimitMiddlewareErrors(t *testing.T) {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusServiceUnavailable)
 	}
 }
+
+func TestNormalizedRoute(t *testing.T) {
+	tests := []struct {
+		name   string
+		method string
+		path   string
+		want   string
+	}{
+		{
+			name:   "numeric path id",
+			method: http.MethodGet,
+			path:   "/api/admin/api-keys/42/revoke",
+			want:   "GET:/api/admin/api-keys/:id/revoke",
+		},
+		{
+			name:   "uuid path id",
+			method: http.MethodPost,
+			path:   "/v1/orders/123e4567-e89b-12d3-a456-426614174000/items",
+			want:   "POST:/v1/orders/:id/items",
+		},
+		{
+			name:   "ulid path id",
+			method: http.MethodDelete,
+			path:   "/v1/sessions/01ARZ3NDEKTSV4RRFFQ69G5FAV",
+			want:   "DELETE:/v1/sessions/:id",
+		},
+		{
+			name:   "static path",
+			method: http.MethodPatch,
+			path:   "/api/admin/tenants/current",
+			want:   "PATCH:/api/admin/tenants/current",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(tc.method, tc.path, nil)
+			got := normalizedRoute(req)
+			if got != tc.want {
+				t.Fatalf("normalizedRoute() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
