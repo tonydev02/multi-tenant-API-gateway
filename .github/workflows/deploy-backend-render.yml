@@ -23,8 +23,7 @@ jobs:
         if: ${{ env.RENDER_DEPLOY_HOOK_URL != '' }}
         run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
 
-      - name: Missing deploy hook guard
+      - name: Skip deploy when hook is not configured
         if: ${{ env.RENDER_DEPLOY_HOOK_URL == '' }}
         run: |
-          echo "RENDER_DEPLOY_HOOK_URL is not configured"
-          exit 1
+          echo "::warning::RENDER_DEPLOY_HOOK_URL is not configured; skipping deploy."

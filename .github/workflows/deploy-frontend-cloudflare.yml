@@ -20,8 +20,7 @@ jobs:
         if: ${{ env.CLOUDFLARE_PAGES_DEPLOY_HOOK_URL != '' }}
         run: curl -fsS -X POST "$CLOUDFLARE_PAGES_DEPLOY_HOOK_URL"
 
-      - name: Missing deploy hook guard
+      - name: Skip deploy when hook is not configured
         if: ${{ env.CLOUDFLARE_PAGES_DEPLOY_HOOK_URL == '' }}
         run: |
-          echo "CLOUDFLARE_PAGES_DEPLOY_HOOK_URL is not configured"
-          exit 1
+          echo "::warning::CLOUDFLARE_PAGES_DEPLOY_HOOK_URL is not configured; skipping deploy."
