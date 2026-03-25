@@ -13,6 +13,17 @@ The project must demonstrate why Go is a strong choice for concurrent, network-h
 - Preserve a working build at all times.
 - Update documentation in `/docs` whenever codebase changes affect architecture, APIs, configuration, or developer workflow.
 
+## Git workflow (interview-ready)
+- Use `main` as protected production branch; do not push directly to `main` for normal work.
+- Create short-lived branches from `main` for every change.
+- Branch naming must be one of: `feat/<area>-<short-description>`, `fix/<area>-<short-description>`, `docs/<area>-<short-description>`, `chore/<area>-<short-description>`.
+- Open a pull request to `main` and require CI checks to pass before merge.
+- Use Conventional Commits for commit messages (for example: `feat(proxy): add tenant-safe upstream cache`).
+- Keep PRs small and focused (prefer one concern per PR).
+- Squash-merge PRs to keep `main` history clean and readable.
+- Delete merged branches to keep the repository tidy.
+- Use `hotfix/*` branches only for urgent production fixes, then merge via PR back to `main`.
+
 ## Tech constraints
 - Backend: Go
 - Frontend: React + TypeScript
