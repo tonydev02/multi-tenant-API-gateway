@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -130,6 +131,13 @@ func listAPIKeysHandler(store *auth.Store) http.HandlerFunc {
 			keys, err = store.ListAPIKeysByTenant(r.Context(), tenantID)
 		}
 		if err != nil {
+			requestID, _ := requestIDFromContext(r.Context())
+			slog.Error("list api keys failed",
+				"request_id", requestID,
+				"tenant_id", tenantID,
+				"path", r.URL.Path,
+				"error", err.Error(),
+			)
 			writeError(w, http.StatusInternalServerError, "failed to list api keys")
 			return
 		}
