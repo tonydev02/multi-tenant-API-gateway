@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+
+	"github.com/lib/pq"
 )
 
 func TestShouldRetryReadError(t *testing.T) {
@@ -22,6 +24,8 @@ func TestShouldRetryReadError(t *testing.T) {
 		{name: "bad conn", err: driver.ErrBadConn, want: true},
 		{name: "wrapped bad conn", err: fmt.Errorf("query failed: %w", driver.ErrBadConn), want: true},
 		{name: "deadline exceeded", err: context.DeadlineExceeded, want: true},
+		{name: "pq protocol violation", err: &pq.Error{Code: "08P01"}, want: true},
+		{name: "bind message mismatch text", err: errors.New("pq: bind message has 7 result formats but query has 5 columns (08P01)"), want: true},
 		{name: "reset by peer", err: errors.New("read tcp: connection reset by peer"), want: true},
 		{name: "broken pipe", err: errors.New("write: broken pipe"), want: true},
 		{name: "unexpected eof", err: errors.New("unexpected EOF"), want: true},
