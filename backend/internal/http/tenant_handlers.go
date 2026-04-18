@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/namta/multi-tenant-api-gateway/backend/internal/auth"
@@ -76,6 +77,13 @@ func getCurrentTenantHandler(tenantStore *tenant.Store) http.HandlerFunc {
 			t, err = tenantStore.GetByID(r.Context(), tenantID)
 		}
 		if err != nil {
+			requestID, _ := requestIDFromContext(r.Context())
+			slog.Error("get current tenant failed",
+				"request_id", requestID,
+				"tenant_id", tenantID,
+				"path", r.URL.Path,
+				"error", err.Error(),
+			)
 			if errors.Is(err, sql.ErrNoRows) {
 				writeError(w, http.StatusNotFound, "tenant not found")
 				return
@@ -149,6 +157,13 @@ func consumerWhoAmIHandler(tenantStore *tenant.Store) http.HandlerFunc {
 			t, err = tenantStore.GetByID(r.Context(), tenantID)
 		}
 		if err != nil {
+			requestID, _ := requestIDFromContext(r.Context())
+			slog.Error("consumer whoami tenant lookup failed",
+				"request_id", requestID,
+				"tenant_id", tenantID,
+				"path", r.URL.Path,
+				"error", err.Error(),
+			)
 			if errors.Is(err, sql.ErrNoRows) {
 				writeError(w, http.StatusNotFound, "tenant not found")
 				return

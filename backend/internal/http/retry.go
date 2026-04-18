@@ -2,6 +2,7 @@ package gatewayhttp
 
 import (
 	"context"
+	"database/sql"
 	"database/sql/driver"
 	"errors"
 	"strings"
@@ -16,7 +17,7 @@ func shouldRetryReadError(err error) bool {
 	if errors.Is(err, context.Canceled) {
 		return false
 	}
-	if errors.Is(err, driver.ErrBadConn) || errors.Is(err, context.DeadlineExceeded) {
+	if errors.Is(err, driver.ErrBadConn) || errors.Is(err, context.DeadlineExceeded) || errors.Is(err, sql.ErrConnDone) {
 		return true
 	}
 
