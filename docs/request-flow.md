@@ -70,6 +70,7 @@ Example:
 - Missing tenant context: `401`
 - Rate limit exceeded: `429`
 - Rate limiter unavailable: `503` (or `500` for invalid internal policy)
+- Tenant/admin read endpoints perform one fast retry on transient database read errors before returning `500`.
 - Unknown proxy service: `404`
 - Upstream unavailable: `502`
 
