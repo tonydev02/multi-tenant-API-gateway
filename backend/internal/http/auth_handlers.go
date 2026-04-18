@@ -126,6 +126,9 @@ func listAPIKeysHandler(store *auth.Store) http.HandlerFunc {
 			return
 		}
 		keys, err := store.ListAPIKeysByTenant(r.Context(), tenantID)
+		if shouldRetryReadError(err) {
+			keys, err = store.ListAPIKeysByTenant(r.Context(), tenantID)
+		}
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, "failed to list api keys")
 			return

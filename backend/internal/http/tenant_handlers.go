@@ -72,6 +72,9 @@ func getCurrentTenantHandler(tenantStore *tenant.Store) http.HandlerFunc {
 		}
 
 		t, err := tenantStore.GetByID(r.Context(), tenantID)
+		if shouldRetryReadError(err) {
+			t, err = tenantStore.GetByID(r.Context(), tenantID)
+		}
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				writeError(w, http.StatusNotFound, "tenant not found")
@@ -142,6 +145,9 @@ func consumerWhoAmIHandler(tenantStore *tenant.Store) http.HandlerFunc {
 			return
 		}
 		t, err := tenantStore.GetByID(r.Context(), tenantID)
+		if shouldRetryReadError(err) {
+			t, err = tenantStore.GetByID(r.Context(), tenantID)
+		}
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				writeError(w, http.StatusNotFound, "tenant not found")

@@ -20,6 +20,10 @@
 - Added table-driven tests for normalized route behavior to protect key cardinality assumptions.
 - Added interview-focused documentation set in `/docs`: request flow, configuration reference, security model, and observability guide.
 
+## Maintenance updates (2026-04-19)
+- Added a one-time retry for transient database read errors on refresh-critical tenant/admin read endpoints (`GET /api/admin/tenants/current`, `GET /api/admin/api-keys`, and consumer `GET /api/consumer/whoami`) to reduce intermittent `500` responses during refresh bursts after login.
+- Added table-driven tests for transient retry classification behavior.
+
 ## Assumptions
 - MVP prioritizes architecture clarity over feature depth.
 - Provider-native observability is sufficient for phase 06 (OpenTelemetry deferred).
